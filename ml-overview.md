@@ -1,3 +1,9 @@
+---
+layout: page
+title: "Overview"
+permalink: /ml-overview/
+---
+
 # Overview of ML
 > Machine Learning is getting a computer to stare so hard at the patterns in data, that it starts to see them easier and easier. For us humans that's insanity, to computers that's efficient.
 
