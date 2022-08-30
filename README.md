@@ -19,4 +19,4 @@ In my public repository, [ml-portfolio](https://github.com/zaiquiriw/ml-portfoli
 - [x] Summarize the main branches of ML algorithms
 - [x] Reflect on your personal interest in ML
 
-An [Overview of ML](/ml-portfolio/overview-ml.pdf) can be found in the repo! [Download Direct](https://raw.githubusercontent.com/zaiquiriw/zaiquiriw.github.io/main/docs/ml-notes/ml-chapter-1.md)
+An [Overview of ML](https://github.com/zaiquiriw/ml-portfolio/blob/main/ml-overview.pdf) can be found in the repo! You can read it on [here](https://zaiquiriw.github.io/ml-portfolio/ml-overview/) as well
