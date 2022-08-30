@@ -8,6 +8,7 @@ In my public repository, [ml-portfolio](https://github.com/zaiquiriw/ml-portfoli
 - [ ] Finish setting up the main site at [zaiquiriw.github.io](zaiquiriw.github.io), goals can be found [here](https://github.com/zaiquiriw/zaiquiriw.github.io) 
 - [ ] Port theme and set up Mkdocs
 	- [ ] Set up Mkdocs build action
+		- [ ] Must use absolute file paths until I change because I do not want to touch a jekyll config file for fixing relative file paths
 	- [ ] Decide whether to build site in `gh-pages` branch or in `/(root)`
 	- [ ] Host resources both as navigable html files, and link to pdfs.
 	- [ ] I want to figure out how to easily format a download link in a markdown page, after the static generator has converted it to html. [Saving this!](https://downgit.github.io/#/home)
@@ -18,4 +19,4 @@ In my public repository, [ml-portfolio](https://github.com/zaiquiriw/ml-portfoli
 - [x] Summarize the main branches of ML algorithms
 - [x] Reflect on your personal interest in ML
 
-An [Overview of ML](/overview-ml.pdf) can be found in the repo! [Download Direct](https://raw.githubusercontent.com/zaiquiriw/zaiquiriw.github.io/main/docs/ml-notes/ml-chapter-1.md)
+An [Overview of ML](/ml-portfolio/overview-ml.pdf) can be found in the repo! [Download Direct](https://raw.githubusercontent.com/zaiquiriw/zaiquiriw.github.io/main/docs/ml-notes/ml-chapter-1.md)
