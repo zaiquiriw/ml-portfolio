@@ -5,7 +5,7 @@
 In my public repository, [ml-portfolio](https://github.com/zaiquiriw/ml-portfolio) you will find the code and notes I write while learning in Dr. Karen Mazidi's class *Introduction to Machine Learning*  at the University of Texas at Dallas. While this is currently just a markdown document with links to posted materials, I hope to expand this in the future, perhaps to hold resources accessed by a live site.
 
 ## TODO
-- [ ] Finish setting up the main site at [zaiquiriw.github.io](zaiquiriw.github.io), goals can be found [here](https://github.com/zaiquiriw/zaiquiriw.github.io) 
+- [ ] Finish setting up the main site at [zaiquiriw.github.io](https://zaiquiriw.github.io), goals can be found [here](https://github.com/zaiquiriw/zaiquiriw.github.io) 
 - [ ] Port theme and set up Mkdocs
 	- [ ] Set up Mkdocs build action
 		- [ ] Must use absolute file paths until I change because I do not want to touch a jekyll config file for fixing relative file paths
