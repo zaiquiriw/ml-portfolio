@@ -55,13 +55,10 @@ public:
 	}
 
 	// Calculate the range of a vector
-	double range_vector(vector<double> vect)
+	vector<double> range_vector(vector<double> vect)
 	{
-		// I could return the values of min and max to mimic the range function
-		// of R, but I think since this lesson is about writing my own code,
-		// I will just return the difference between the max and min instead of
-		// the min and max.
-		return max_vector(vect) - min_vector(vect);
+		vector<double> range = {max_vector(vect), min_vector(vect)};
+		return range;
 	}
 
 	// Calculate the max of a vector (Just for range)
@@ -122,7 +119,8 @@ public:
 		cout << "Sum:    " << sum_vector(vect) << endl;
 		cout << "Mean:   " << mean_vector(vect) << endl;
 		cout << "Median: " << median_vector(vect) << endl;
-		cout << "Range:  " << range_vector(vect) << endl;
+		vector<double> range = range_vector(vect);
+		cout << "Range:  " << range[1] << ", " << range[0] << endl;
 	}
 };
 
