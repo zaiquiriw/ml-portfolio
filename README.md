@@ -14,9 +14,19 @@ In my public repository, [ml-portfolio](https://github.com/zaiquiriw/ml-portfoli
 	- [ ] I want to figure out how to easily format a download link in a markdown page, after the static generator has converted it to html. [Saving this!](https://downgit.github.io/#/home)
 
 ## Assignments
-### 1: Getting Started
+### 0: Getting Started
 - [x] Create a GitHub portfolio for class work
 - [x] Summarize the main branches of ML algorithms
 - [x] Reflect on your personal interest in ML
 
 An [Overview of ML](https://github.com/zaiquiriw/ml-portfolio/blob/main/ml-overview.pdf) can be found in the repo! You can read it on [here](https://zaiquiriw.github.io/ml-portfolio/ml-overview/) as well
+
+### 1: Data Exploration
+- [X] Read a CSV file in C++
+- [X] Create a suite of simple stats functions in C++
+- [X] Find more complex values:
+	- [X] Covariance
+	- [X] Correlation 
+- [X] Write documnetation on the value of this data
+
+As we are learning R, we needed a referesher on C++, so this was that. [The documenation](https://zaiquiriw.github.io/ml-portfolio/assignment-1/documentation.pdf/) explains the importance of what I went over, and the code practice can be found [here](https://github.com/zaiquiriw/ml-portfolio/blob/main/assignment-1/explore.cpp).
