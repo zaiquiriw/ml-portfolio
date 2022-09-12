@@ -29,4 +29,4 @@ An [Overview of ML](ml-overview.pdf) can be found in the repo! You can read it o
 	- [X] Correlation 
 - [X] Write documnetation on the value of this data
 
-As we are learning R, we needed a referesher on C++, so this was that. [The documenation](assignment-1/documentation.pdf) explains the importance of what I went over, and the code practice can be found [here](https://github.com/zaiquiriw/ml-portfolio/blob/main/assignment-1/explore.cpp).
+As we are learning R, we need a refresher on C++, so this was that. [The documentation](https://github.com/zaiquiriw/ml-portfolio/blob/main/assignment-1/documentation.pdf) explains the importance of what I went over, and the code practice can be found [here](https://github.com/zaiquiriw/ml-portfolio/blob/main/assignment-1/explore.cpp).

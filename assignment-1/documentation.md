@@ -5,7 +5,9 @@
 For me this is both a review of C++, but also a review of what correlation is.
 
 ### Notes
-I do want to point out that while the assignment says to "recreate that functionality in C++" code, I did end up just returning the range (distance from min to max) instead of the max and the min like the R function does. I figured that this suited C++ more. R doesn't really contain scalars, so it feels more like R to return two values, while in C++, returning a vector is seems outside of what you might assume a range function might do in C++
+- I deliberate whether returning range as the min and max, or as the difference between the two. I eventually chose just returning a min and max.
+- I can't get relative links to work at the moment, hope it's fine that it is linking to the file hosted on the main site
+- 
 ## Conclusion
 ### The Code
 ```c
