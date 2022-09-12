@@ -19,7 +19,7 @@ In my public repository, [ml-portfolio](https://github.com/zaiquiriw/ml-portfoli
 - [x] Summarize the main branches of ML algorithms
 - [x] Reflect on your personal interest in ML
 
-An [Overview of ML](https://github.com/zaiquiriw/ml-portfolio/blob/main/ml-overview.pdf) can be found in the repo! You can read it on [here](https://zaiquiriw.github.io/ml-portfolio/ml-overview/) as well
+An [Overview of ML](ml-overview.pdf) can be found in the repo! You can read it on [here](https://zaiquiriw.github.io/ml-portfolio/ml-overview/) as well
 
 ### 1: Data Exploration
 - [X] Read a CSV file in C++
@@ -29,4 +29,4 @@ An [Overview of ML](https://github.com/zaiquiriw/ml-portfolio/blob/main/ml-overv
 	- [X] Correlation 
 - [X] Write documnetation on the value of this data
 
-As we are learning R, we needed a referesher on C++, so this was that. [The documenation](https://zaiquiriw.github.io/ml-portfolio/assignment-1/documentation.pdf/) explains the importance of what I went over, and the code practice can be found [here](https://github.com/zaiquiriw/ml-portfolio/blob/main/assignment-1/explore.cpp).
+As we are learning R, we needed a referesher on C++, so this was that. [The documenation](assignment-1/documentation.pdf) explains the importance of what I went over, and the code practice can be found [here](https://github.com/zaiquiriw/ml-portfolio/blob/main/assignment-1/explore.cpp).
