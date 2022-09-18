@@ -15,6 +15,7 @@ Found on Kaggle.
 [how linear regression works, with strengths and weaknesses]
 
 
+### Data Exploration
 First, we divide our data up into training and testing.
 ```{r}
 
@@ -34,39 +35,43 @@ We'll pull up two graphs to get a better idea of what we have to do, now.
 ```
 
 
+### Linear Regression: Simple
 Let's start with a linear regression model with one predictor, and summarize it. 
 ```{r}
 
 ```
 [insert explanation of info seen in the summary]
 
-Lets plot the residuals.
+Lets plot the residual errors, and evaluate.
 ```{r}
 
 ```
 [insert explanation of what the residual plot tells us]
 
 
+### Linear Regression: Multiple
 Let's up the complexity, now. We'll build a multiple linear regression model, and see if we can improve the accuracy.
 ```{r}
 
 ```
 [short explanation of it]
 
+### Linear Regression: Combinations
 Now let's go a step even farther. We'll use a combination of predictors, interaction effects, and polynomial regression to see if we can get even more accurate. 
 ```{r}
 
 ```
 
-
+### Evaluation 
 [long explanation talking about which model was the best, comparing the results, and explaining why we liked which model the best]
 
 
+### Predictions
 Using the three models, we will predict and evaluate using the metric correlation and MSE. 
 ```{r}
 
 ```
-[insert explanation, comparinig the results and indicating why we think they happened]
+[insert explanation, comparing the results and indicating why we think they happened]
 
 
 
