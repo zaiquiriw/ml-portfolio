@@ -11,28 +11,106 @@ output:
 
 Using the Hungary Dataset [Weather in Szeged 2006-2016](https://www.kaggle.com/datasets/budincsevity/szeged-weather)
 Found on Kaggle. 
+Our goal is to see if we can see how Wind Speed and Humidity relate to Apparent Temperature.
 
 [how linear regression works, with strengths and weaknesses]
 
 
 ### Data Exploration
-First, we divide our data up into training and testing.
+First, we read the data in, then divide our data up into training and testing.
 ```{r}
-
+df <- read.csv("weatherHistory.csv")
+str(df)
+set.seed(42069)
+trainindex <- sample(1:nrow(df),nrow(df)*.8,replace=FALSE)
+train <- df[trainindex,]
+test <- df[-trainindex,]
 ```
+
 
 
 Next, we want to explore our training data. 
-We'll look into averages, the head of the data, the range, the correlation, and the summary of it.
 ```{r}
+names(df)
+dim(df)
+head(df)
+mean(df$Temperature..C.)
+mean(df$Apparent.Temperature..C.)
+mean(df$Humidity)
+mean(df$Wind.Speed..km.h.)
+mean(df$Wind.Bearing..degrees.)
+mean(df$Visibility..km.)
+mean(df$Loud.Cover)
+mean(df$Pressure..millibars)
 
+#Noticing the mean of 0 of df$Loud.Cover, lets check its sum in specific.
+sum(df$Loud.Cover)
+#And thus we realize this attribute is attributively useless.
+
+#Let's see if we have any NAs.
+sum(is.na(df$Formatted.Date))
+sum(is.na(df$Summary))
+sum(is.na(df$Precip.Type))
+sum(is.na(df$Temperature..C.))
+sum(is.na(df$Apparent.Temperature..C.))
+sum(is.na(df$Humidity))
+sum(is.na(df$Wind.Speed..km.h.))
+sum(is.na(df$Wind.Bearing..degrees.))
+sum(is.na(df$Visibility..km.))
+sum(is.na(df$Loud.Cover))
+sum(is.na(df$Pressure..millibars))
+sum(is.na(df$Daily.Summary))
+#Okay, so we don't have any NAs.
+
+#Now, lets see how R would summarize this data. 
+summary(df)
+
+```
+One thing we notice is that there is an attribute labeled 'Loud Cover' that all values are 0 in.
+...Therefore, this will be an aspect that, by and large, we will ignore.
+However, in the summary, we can notice that there is a minimum value of 0 on Pressure, which has an average and max similar to each other. We can assume a 0 is a NA value here. 
+The other values that are 0 we can't make assumptions on validity.
+If Wind Speed is 0, so will Wind Bearing, we can realize from looking through the data in passing. 
+Since there is no place in earth without wind, we can also state that these values aren't accurate. After we look a the data some more, we'll decide how we want to clean them up.
+We cannot come to a clear resolution on other attributes.
+
+
+We'll pull up some graphs to get a better idea of what we have to do, now.
+```{r}
+cor(df[4:7])
+boxplot(df$Apparent.Temperature..C.,main="Apparent Temperature")
+boxplot(df$Humidity,main="Humidity")
+boxplot(df$Wind.Speed..km.h.,main="Wind Speed")
+#pairs(df[4:7],main="Temperature, Humidity, and Wind Correlations")
+plot(df$Apparent.Temperature..C.,df$Wind.Speed..km.h.)
+plot(df$Apparent.Temperature..C.,df$Humidity)
+
+```
+We can notice that there are some outliers in humidity at the 0 line we'll want to sort out, as well.
+We also notice a sort of "knife" shape in the data when being compared, at around 10 degrees Celsius.
+By and large, we have such a large amount of data, it's difficult to notice quick correlations. 
+That's why we have Machine Learning, we suppose.
+
+
+
+Now, we'll clean up the data according to what we found. We'll clean up only what is referenced, but we will delete what we are uncertain about, since we have such a large amount of data.
+```{r}
+df[,6:7][df[,6:7]==0] <- NA
+df <- na.omit(df)
+summary(df)
 ```
 
 
-We'll pull up two graphs to get a better idea of what we have to do, now.
+Now we'll do some more graphs.
 ```{r}
-
+cor(df[4:7])
+boxplot(df$Apparent.Temperature..C.,main="Apparent Temperature")
+boxplot(df$Humidity,main="Humidity")
+boxplot(df$Wind.Speed..km.h.,main="Wind Speed")
+plot(df$Apparent.Temperature..C.,df$Wind.Speed..km.h.)
+plot(df$Apparent.Temperature..C.,df$Humidity)
 ```
+
 
 
 ### Linear Regression: Simple
