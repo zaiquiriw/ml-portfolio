@@ -1,0 +1,12 @@
+---
+title: "Regression"
+output: html_notebookd
+author: "Zachary Canoot & Gray Simpson"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+# Regression
+
+Using the Hungary Dataset
