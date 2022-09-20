@@ -11,7 +11,7 @@ output:
 
 Using the Hungary Dataset [Weather in Szeged 2006-2016](https://www.kaggle.com/datasets/budincsevity/szeged-weather)
 Found on Kaggle. 
-Our goal is to see if we can see how Wind Speed and Humidity relate to Apparent Temperature.
+Our goal is to see if we can see how Wind Speed and Humidity relate to the difference between Apparent Temperature and Temperature.
 
 [how linear regression works, with strengths and weaknesses]
 
@@ -20,7 +20,14 @@ Our goal is to see if we can see how Wind Speed and Humidity relate to Apparent 
 First, we read the data in, then divide our data up into training and testing.
 ```{r}
 df <- read.csv("weatherHistory.csv")
+#Here we'll add the data that we are interested in: difference in Apparent Temp and Temp.
+#attr(x=df,which="Temp.Diff") <- df[]
+df$Temperature.Diff <- df$Temperature..C. - df$Apparent.Temperature..C.
+#We'll also convert some data to factors for ease.
+df$Precip.Type <- as.factor(df$Precip.Type)
+df$Summary <- as.factor(df$Summary)
 str(df)
+#Now we'll divide into train and test.
 set.seed(42069)
 trainindex <- sample(1:nrow(df),nrow(df)*.8,replace=FALSE)
 train <- df[trainindex,]
@@ -64,6 +71,7 @@ sum(is.na(df$Daily.Summary))
 
 #Now, lets see how R would summarize this data. 
 summary(df)
+summary(df$Summary)
 
 ```
 One thing we notice is that there is an attribute labeled 'Loud Cover' that all values are 0 in.
@@ -76,26 +84,28 @@ We cannot come to a clear resolution on other attributes.
 
 
 We'll pull up some graphs to get a better idea of what we have to do, now.
+Yellow dots are null precipitation days, green is rain, and blue is snow.
 ```{r}
 cor(df[4:7])
-boxplot(df$Apparent.Temperature..C.,main="Apparent Temperature")
+boxplot(df$Temperature.Diff,main="Apparent Temperature")
 boxplot(df$Humidity,main="Humidity")
 boxplot(df$Wind.Speed..km.h.,main="Wind Speed")
 #pairs(df[4:7],main="Temperature, Humidity, and Wind Correlations")
-plot(df$Apparent.Temperature..C.,df$Wind.Speed..km.h.)
-plot(df$Apparent.Temperature..C.,df$Humidity)
+plot(df$Temperature.Diff,df$Wind.Speed..km.h.,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
+plot(df$Temperature.Diff,df$Humidity,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
 
 ```
 We can notice that there are some outliers in humidity at the 0 line we'll want to sort out, as well.
 We also notice a sort of "knife" shape in the data when being compared, at around 10 degrees Celsius.
-By and large, we have such a large amount of data, it's difficult to notice quick correlations. 
-That's why we have Machine Learning, we suppose.
+By and large, we have such a large amount of data, it's difficult to notice quick correlations, aside from wind speed and temperature when it is snowing.
+That's why we have Machine Learning, we suppose. 
 
 
 
 Now, we'll clean up the data according to what we found. We'll clean up only what is referenced, but we will delete what we are uncertain about, since we have such a large amount of data.
 ```{r}
 df[,6:7][df[,6:7]==0] <- NA
+df[,13:13][df[,13:13]==0] <- NA
 df <- na.omit(df)
 summary(df)
 ```
@@ -104,19 +114,53 @@ summary(df)
 Now we'll do some more graphs.
 ```{r}
 cor(df[4:7])
-boxplot(df$Apparent.Temperature..C.,main="Apparent Temperature")
+boxplot(df$Temperature.Diff,main="Apparent Temperature")
 boxplot(df$Humidity,main="Humidity")
 boxplot(df$Wind.Speed..km.h.,main="Wind Speed")
-plot(df$Apparent.Temperature..C.,df$Wind.Speed..km.h.)
-plot(df$Apparent.Temperature..C.,df$Humidity)
+#pairs(df[4:7],main="Temperature, Humidity, and Wind Correlations")
+plot(df$Temperature.Diff,df$Wind.Speed..km.h.,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
+plot(df$Temperature.Diff,df$Humidity,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
+
 ```
+
+Before I move on to linear regression, I have one more question before I investigate disparities in the data. 
+Since this project has multiple contributors, perhaps there are even more hidden NA's. 
+Let's see what the data looks like if we remove data where there is no difference. 
+```{r}
+diffOnly <- df
+diffOnly[,3:4][diffOnly[,3:3]==diffOnly[,4:4]] <- NA
+diffOnly <- na.omit(diffOnly)
+plot(diffOnly$Temperature.Diff,diffOnly$Wind.Speed..km.h.,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
+plot(diffOnly$Temperature.Diff,diffOnly$Humidity,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
+#These graphs show the overall descriptor of the weather. There are 27 options.
+plot(diffOnly$Temperature.Diff,diffOnly$Wind.Speed..km.h.,pch=21,bg=c("white","aquamarine","blue","brown","green","yellow","red","cyan","darkgray","darkgreen","magenta","orange","dodgerblue","forestgreen","gold","sienna","thistle","violet","springgreen","slateblue","wheat","tomato","yellowgreen","tan","lightblue","hotpink","darkred")[as.integer(df$Summary)])
+plot(diffOnly$Temperature.Diff,diffOnly$Humidity,pch=21,bg=c("white","aquamarine","blue","brown","green","yellow","red","cyan","darkgray","darkgreen","magenta","orange","dodgerblue","forestgreen","gold","sienna","thistle","violet","springgreen","slateblue","wheat","tomato","yellowgreen","tan","lightblue","hotpink","darkred")[as.integer(df$Summary)])
+```
+This does not seem to have effected data trends very much.
+Looking at the data based on Summary does not help us much, but we can notice that the cloud of data that does not seem to have much trend is in the violet(18) and slateblue (13), or rather Mostly Cloudy and Foggy.
+
+Let's change this experimental section to remove that data as well.
+```{r}
+diffOnly <- df
+diffOnly[,2:2][diffOnly$Summary=="Mostly Cloudy"] <- NA
+diffOnly[,2:2][diffOnly$Summary=="Foggy"] <- NA
+diffOnly <- na.omit(diffOnly)
+plot(diffOnly$Temperature.Diff,diffOnly$Wind.Speed..km.h.,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
+plot(diffOnly$Temperature.Diff,diffOnly$Humidity,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
+#These graphs show the overall descriptor of the weather. There are 27 options.
+plot(diffOnly$Temperature.Diff,diffOnly$Wind.Speed..km.h.,pch=21,bg=c("white","aquamarine","blue","brown","green","yellow","red","cyan","darkgray","darkgreen","magenta","orange","dodgerblue","forestgreen","gold","sienna","thistle","violet","springgreen","slateblue","wheat","tomato","yellowgreen","tan","lightblue","hotpink","darkred")[as.integer(df$Summary)])
+plot(diffOnly$Temperature.Diff,diffOnly$Humidity,pch=21,bg=c("white","aquamarine","blue","brown","green","yellow","red","cyan","darkgray","darkgreen","magenta","orange","dodgerblue","forestgreen","gold","sienna","thistle","violet","springgreen","slateblue","wheat","tomato","yellowgreen","tan","lightblue","hotpink","darkred")[as.integer(df$Summary)])
+
+```
+
 
 
 
 ### Linear Regression: Simple
 Let's start with a linear regression model with one predictor, and summarize it. 
 ```{r}
-
+simplelinreg <- lm(df$Apparent.Temperature..C.~df$Humidity)
+summary(simplelinreg)
 ```
 [insert explanation of info seen in the summary]
 
