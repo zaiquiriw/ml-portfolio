@@ -137,14 +137,20 @@ plot(diffOnly$Temperature.Diff,diffOnly$Wind.Speed..km.h.,pch=21,bg=c("white","a
 plot(diffOnly$Temperature.Diff,diffOnly$Humidity,pch=21,bg=c("white","aquamarine","blue","brown","green","yellow","red","cyan","darkgray","darkgreen","magenta","orange","dodgerblue","forestgreen","gold","sienna","thistle","violet","springgreen","slateblue","wheat","tomato","yellowgreen","tan","lightblue","hotpink","darkred")[as.integer(df$Summary)])
 ```
 This does not seem to have effected data trends very much.
-Looking at the data based on Summary does not help us much, but we can notice that the cloud of data that does not seem to have much trend is in the violet(18) and slateblue (13), or rather Mostly Cloudy and Foggy.
+Looking at the data based on Summary does not help us much, but we can notice that the cloud of data that does not seem to have much trend is in the violet(18) and slateblue (20), or rather Mostly Cloudy and Partly Cloudy.
+
+Since that seemed to cause no changes, but may have helped clean it up a small amount, let's write it to df.
+```{r}
+df <- diffOnly
+```
+
 
 Let's change this experimental section to remove that data as well.
 ```{r}
-diffOnly <- df
-diffOnly[,2:2][diffOnly$Summary=="Mostly Cloudy"] <- NA
-diffOnly[,2:2][diffOnly$Summary=="Foggy"] <- NA
+diffOnly[,2:2][diffOnly$Summary==diffOnly$Summary[c(18)]] <- NA
+diffOnly[,2:2][diffOnly$Summary==diffOnly$Summary[c(20)]] <- NA
 diffOnly <- na.omit(diffOnly)
+summary(df$Summary)
 plot(diffOnly$Temperature.Diff,diffOnly$Wind.Speed..km.h.,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
 plot(diffOnly$Temperature.Diff,diffOnly$Humidity,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
 #These graphs show the overall descriptor of the weather. There are 27 options.
@@ -157,16 +163,17 @@ plot(diffOnly$Temperature.Diff,diffOnly$Humidity,pch=21,bg=c("white","aquamarine
 
 
 ### Linear Regression: Simple
-Let's start with a linear regression model with one predictor, and summarize it. 
+Let's start with a linear regression model with one predictor, Humidity,and summarize it. 
 ```{r}
-simplelinreg <- lm(df$Apparent.Temperature..C.~df$Humidity)
+simplelinreg <- lm(df$Temperature.Diff~df$Humidity,data=train)
 summary(simplelinreg)
 ```
 [insert explanation of info seen in the summary]
 
 Lets plot the residual errors, and evaluate.
 ```{r}
-
+par(mfrow=c(2,2))
+plot(simplelinreg)
 ```
 [insert explanation of what the residual plot tells us]
 
@@ -174,14 +181,16 @@ Lets plot the residual errors, and evaluate.
 ### Linear Regression: Multiple
 Let's up the complexity, now. We'll build a multiple linear regression model, and see if we can improve the accuracy.
 ```{r}
-
+multlinreg <- lm(df$Temperature.Diff~df$Humidity+df$Wind.Speed..km.h.+df$Precip.Type,data=train)
+summary(multlinreg)
 ```
 [short explanation of it]
 
 ### Linear Regression: Combinations
 Now let's go a step even farther. We'll use a combination of predictors, interaction effects, and polynomial regression to see if we can get even more accurate. 
 ```{r}
-
+combolinreg <- lm(df$Temperature.Diff~poly(df$Humidity+df$Wind.Speed..km.h.)+df$Precip.Type,data=train)
+summary(combolinreg)
 ```
 
 ### Evaluation 
@@ -191,7 +200,12 @@ Now let's go a step even farther. We'll use a combination of predictors, interac
 ### Predictions
 Using the three models, we will predict and evaluate using the metric correlation and MSE. 
 ```{r}
-
+simplepred <- predict(simplelinreg,newdata=test)
+simplecor <- cor(simplepred,test$Temperature.Diff)
+simplemse <- mean((simplepred-test$Temperature.Diff)^2)
+simplermse <- sqrt(simplemse)
+multpred <- predict(multlinreg,newdata=test)
+combopred <- predict(combolinreg,newdata=test)
 ```
 [insert explanation, comparing the results and indicating why we think they happened]
 
