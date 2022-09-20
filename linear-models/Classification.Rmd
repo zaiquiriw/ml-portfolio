@@ -1,0 +1,140 @@
+---
+title: "Classification"
+author: "Zachary Canoot & Gray Simpson"
+output:
+  html_document:
+    df_print: paged
+---
+# Classification
+This time the goal is to take predictor values that are either qualitative or quantitative, and decide what to classify an observation. We will be using logistic regression and naive bayes, and then evaluated our results.
+
+## What is Our Data?
+The weather data we used in our quantitative didn't have a suitable categorical target field, so we are switching to [income census data](https://www.kaggle.com/datasets/rdcmdev/adult-income-dataset). The data has a great binary classification in the form of an income attribute that only states whether a given person's income is below or above 50k. We have plenty of categories for each person, and continuous measurements like age and work hours.
+
+The census itself is from the year 1994, and spans various socieo-economic groups. We both trying to predict this income classification based on all of the data, as well as just get an understanding of some key predictors in the data.
+
+### Reading the Data
+The data is stored as two files, with rows just delimited by commas, so we read them in to one whole data frame, and label the headers manual using our source as a reference. It's worth noting that this data was extracted with the intention of creating a classification model, so the two files are meant to be training and test data, but we are going to re-distribute the data later.
+```{r}
+income_train <- read.table("adult.data", sep=",", header=FALSE)
+income_test <- read.table("adult.test", sep=",", header=FALSE)
+income <- rbind(income_test, income_train)
+colnames(income) <- c("Age", "WorkClass", "Weight", "Education", "YearsEdu", "Marital-Status", "Job", "Relationship", "Race", "Sex", "CapitalGain", "CapitalLoss", "HoursWorked", "NativeCountry", "IncomeClass")
+#Just to check to make sure it read properly
+str(income)
+```
+Now we want to turn the qualitative data into factors.
+
+Find all attributes of income that are non-numeric
+  - sapply() returns a logical object of every attribute run through the given function
+  - which() returns all of the true indices of a logical object
+  - income[,<object>] extracts the attributes (See help(Extract))
+  - We then lapply, with as.factor forcing them to be factors in a list
+  
+Then just factor them.
+```{r}
+# Note here that while sapply returns a vector, lapply returns a list
+income[, sapply(income, is.character)] <- lapply(income[, sapply(income, is.character)], as.factor)
+# Checking our work
+str(income)
+```
+
+Now the data is a bit cleaner we can start to look at it!
+```{r}
+summary(income)
+```
+Now that we can really see our factor's options, I see a couple skewed data points:
+  - Twice as many men as women! Hope those numbers are better in 2022!
+  - A large percent of the data is for natives to the US, which is kind of expected
+  - Weight: Now, this represent what census takers thought a particular row represented the whole of the dataset. I must admit at the time I don't know how to account for statistical weight, but considering our model only needs to match training data, not other data from 1994, we are safe to ignore it.
+
+The data looks very clean! Except for a bit of an anomaly with how the Target column, IncomeClass is stored. Some levels have a "." at the end, which we would like to remove. So lets go ahead and condense that, remove the Weight attribute, and create our training and test data.
+
+```{r}
+# Simply just reassign the levels
+levels(income$IncomeClass) <- c("<=50k", "<=50k", ">50k", ">50k")
+levels(income$IncomeClass)
+# Then remove the attribute weight using it's index
+income <- income[, -3]
+income
+```
+
+Then we are good to start exploring!
+
+## Training Data Exploration
+### Spliting Training Data
+We are splitting training data on a 80/20 split
+```{r}
+set.seed(42069)
+trainindex <- sample(1:nrow(income),nrow(income)*.8,replace=FALSE)
+train <- income[trainindex,]
+test <- income[-trainindex,]
+# Cleaning up earlier data
+rm("income", "income_test", "income_train")
+```
+
+### Textual Measurements
+And what does that training data look like!
+
+We would want to use different metrics, like mean, or count our factors:
+```{r}
+mean(train$Age)
+nlevels(train$WorkClass)
+```
+
+But we can just do that in `summary()`.
+
+```{r}
+summary(train)
+```
+The summary above is good for making sure there is no errors in the data, and of course skews we can deal with. For this data, there sure are a lot of men native to America, but that as said earlier is expected. Looking a bit more:
+
+```{r}
+sum(is.na(train))
+head(train)
+tail(train)
+```
+We get an example of whats at the end and start of the data set, and make sure there are no NA's. The census people really keep their data clean.
+
+For one more look lets see some correlation data. Curious how much capital loss went up with age? We can see below... well not much honestly.
+```{r}
+cor(train$Age, train$CapitalLoss)
+```
+
+Knowing I have a good idea of what the range of my data is, and what it represents, we want to *look* at the data.
+
+### Visual Analysis
+First things first, I want to see how our target, IncomeClass relates to our numerical data:
+```{r}
+plot(x = train$IncomeClass, y=train$Age, ylab="", xlab="Income", main="Age")
+plot(x = train$IncomeClass, y=train$CapitalLoss, ylab="", xlab="Income", main="Capital Loss")
+plot(x = train$IncomeClass, y=train$CapitalGain, ylab="", xlab="Income", main="Capital Gain")
+plot(x = train$IncomeClass, y=train$HoursWorked, ylab="", xlab="Income", main="Hours Worked")
+```
+
+You can definitely see in the ease graphs, particular age and hours worked, that there are grounds to predict this income classification based on the predictor data.
+
+For another view:
+```{r}
+cdplot(train$Age, train$IncomeClass)
+breaks <- (0:10)*10
+plot(train$IncomeClass ~ findInterval(train$HoursWorked, breaks))
+plot(train$Sex, train$IncomeClass)
+```
+
+Above we can see a couple trends relating to Income Class:
+  - Women don't make as much as men
+  - It seems the more hours worked, the higher your chances of making it over 50k
+  - Right around 50 years old is when people were the most likely to make >50k
+
+We have seen a lot of trends in the data that relate our predictors to our target factor, but now it is time to see if all of those predictors together have a good chance of classifying them into the >50k or <=50k levels.
+
+## Classification Regression
+### Logistic Regression
+
+### Naive Bayes Model
+### Analysis
+#### Predictions?
+#### Reality?
+### Strengths and Weaknesses
+## Classification Metrics
