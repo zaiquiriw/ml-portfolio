@@ -131,9 +131,24 @@ We have seen a lot of trends in the data that relate our predictors to our targe
 
 ## Classification Regression
 ### Logistic Regression
+```{r}
+glm1 <- glm(IncomeClass~., data=train, family=binomial)
+summary(glm1)
+```
+
+
+```{r}
+probs <- predict(glm1, newdata=test, type="response")
+pred <- ifelse(probs>0.5, 2, 1)
+acc1 <- mean(pred==as.integer(test$IncomeClass))
+print(paste("glm1 accuracy = ", acc1))
+table(pred, as.integer(test$IncomeClass))
+```
 
 ### Naive Bayes Model
 ### Analysis
+Simple Accuracy
+MCC - TP, FP, TN, FN
 #### Predictions?
 #### Reality?
 ### Strengths and Weaknesses
