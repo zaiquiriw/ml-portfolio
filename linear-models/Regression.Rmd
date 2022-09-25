@@ -179,7 +179,8 @@ Let's up the complexity, now. We'll build a multiple linear regression model, an
 multlinreg <- lm(Temperature.Diff~Humidity+Wind.Speed..km.h.+Precip.Type,data=train)
 summary(multlinreg)
 ```
-[short explanation of it]
+We understand from our data exploration that Humidity, Wind Speed, and Precipitation Type all relate to the data in different ways. We can find different trends depending on what we're looking at, so we can ask the model to reference all of that data when its processing now. When the precipitation type was rain, it didn't add much to figuring things out, but knowing that it was in the snow range was very helpful.
+It's doing better than our simple model, getting the R^2 up much more and a lower RSE. 
 
 ### Linear Regression: Combinations
 Now let's go a step even farther. We'll use a combination of predictors, interaction effects, and polynomial regression to see if we can get even more accurate. 
@@ -187,8 +188,12 @@ Now let's go a step even farther. We'll use a combination of predictors, interac
 combolinreg <- lm(Temperature.Diff~poly(Humidity*Wind.Speed..km.h.)+Precip.Type*Summary,data=train)
 summary(combolinreg)
 ```
+Here, we added Summary as well as an interaction effect with precipitation. We made this decision based on the cloud of Partly Cloudy values that didn't seem to follow other data, and we can see that some specific Summary values were quite helpful in the result, and some were not.
+Overall, though, R^2 is up a bit more, and RSE is down. It's not a huge change, but it does help. Humidity and Wind Speed seemed to have some similar trends and attributes when we graphed them, and the type of weather is related to the type of precipitation, which is why we had those certain attributes marked as an interaction effect.
 
 ### Evaluation 
+With each new type, using more aspects of different Machine Learning model results, we were able to increase the model's ability to find lines within the data, which should help us when we predict our results. In general, the more ways we let the data interact, the better the resulting model seemed to be, so long as we did not do it blindly. Depending on how related certain attributes are, they need to be treated differently, since some attributes are a result of other attributes that may be included in the data. 
+So, in the end, the combination of interaction effects and multiple regression provided the best trends. Simple regression 
 [long explanation talking about which model was the best, comparing the results, and explaining why we liked which model the best]
 
 
