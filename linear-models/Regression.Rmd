@@ -11,9 +11,9 @@ output:
 
 Using the Hungary Dataset [Weather in Szeged 2006-2016](https://www.kaggle.com/datasets/budincsevity/szeged-weather)
 Found on Kaggle. 
-Our goal is to see if we can see how Wind Speed and Humidity relate to the difference between Apparent Temperature and Temperature.
+Our goal is to see if we can see how other weather factors, such as Wind Speed and Humidity, relate to the difference between Apparent Temperature and Temperature.
 
-[how linear regression works, with strengths and weaknesses]
+Linear Regression is one of many supervised models of Machine Learning that functions by finding a trend in given data, using one or more input parameters to find a line of best fit, though it is not always a straight line. As shown by the name, linear regression models assume that the relationship between relevant attributes is linear. The model will predict coefficients for the effect of each predictor. It has low variance due to its linear nature, but with such an assumption, it will also be very high bias.
 
 
 ### Data Exploration
@@ -28,7 +28,7 @@ df$Precip.Type <- as.factor(df$Precip.Type)
 df$Summary <- as.factor(df$Summary)
 str(df)
 #Now we'll divide into train and test.
-set.seed(42069)
+set.seed(8)
 trainindex <- sample(1:nrow(df),nrow(df)*.8,replace=FALSE)
 train <- df[trainindex,]
 test <- df[-trainindex,]
@@ -93,12 +93,14 @@ boxplot(df$Wind.Speed..km.h.,main="Wind Speed")
 #pairs(df[4:7],main="Temperature, Humidity, and Wind Correlations")
 plot(df$Temperature.Diff,df$Wind.Speed..km.h.,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
 plot(df$Temperature.Diff,df$Humidity,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
+plot(df$Temperature.Diff, df$Temperature..C.,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
 
 ```
 We can notice that there are some outliers in humidity at the 0 line we'll want to sort out, as well.
 We also notice a sort of "knife" shape in the data when being compared, at around 10 degrees Celsius.
-By and large, we have such a large amount of data, it's difficult to notice quick correlations, aside from wind speed and temperature when it is snowing.
+By and large, we have such a large amount of data, it's difficult to notice quick correlations, aside from wind speed and temperature when it is snowing/below freezing.
 That's why we have Machine Learning, we suppose. 
+While we would like to predict the results without the base temperature, we can see that is is very clearly related and helpful.
 
 
 
@@ -120,6 +122,7 @@ boxplot(df$Wind.Speed..km.h.,main="Wind Speed")
 #pairs(df[4:7],main="Temperature, Humidity, and Wind Correlations")
 plot(df$Temperature.Diff,df$Wind.Speed..km.h.,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
 plot(df$Temperature.Diff,df$Humidity,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
+plot(df$Temperature.Diff, df$Temperature..C.,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
 
 ```
 
@@ -135,40 +138,32 @@ plot(diffOnly$Temperature.Diff,diffOnly$Humidity,pch=21,bg=c("yellow","green","b
 #These graphs show the overall descriptor of the weather. There are 27 options.
 plot(diffOnly$Temperature.Diff,diffOnly$Wind.Speed..km.h.,pch=21,bg=c("white","aquamarine","blue","brown","green","yellow","red","cyan","darkgray","darkgreen","magenta","orange","dodgerblue","forestgreen","gold","sienna","thistle","violet","springgreen","slateblue","wheat","tomato","yellowgreen","tan","lightblue","hotpink","darkred")[as.integer(df$Summary)])
 plot(diffOnly$Temperature.Diff,diffOnly$Humidity,pch=21,bg=c("white","aquamarine","blue","brown","green","yellow","red","cyan","darkgray","darkgreen","magenta","orange","dodgerblue","forestgreen","gold","sienna","thistle","violet","springgreen","slateblue","wheat","tomato","yellowgreen","tan","lightblue","hotpink","darkred")[as.integer(df$Summary)])
+plot(df$Temperature.Diff, df$Temperature..C.,pch=21,bg=c("white","aquamarine","blue","brown","green","yellow","red","cyan","darkgray","darkgreen","magenta","orange","dodgerblue","forestgreen","gold","sienna","thistle","violet","springgreen","slateblue","wheat","tomato","yellowgreen","tan","lightblue","hotpink","darkred")[as.integer(df$Summary)])
+
 ```
 This does not seem to have effected data trends very much.
-Looking at the data based on Summary does not help us much, but we can notice that the cloud of data that does not seem to have much trend is in the violet(18) and slateblue (20), or rather Mostly Cloudy and Partly Cloudy.
+Looking at the data based on Summary does not help us much, but we can notice that the cloud of data that does not seem to have much trend is in the violet(18) and slateblue (20), or rather Mostly Cloudy and Partly Cloudy. There isn't much helpful we can do with that information at this time, however.
 
 Since that seemed to cause no changes, but may have helped clean it up a small amount, let's write it to df.
+We'll also clean up the train and test data again.
 ```{r}
 df <- diffOnly
+trainindex <- sample(1:nrow(df),nrow(df)*.8,replace=FALSE)
+train <- df[trainindex,]
+test <- df[-trainindex,]
 ```
 
 
-Let's change this experimental section to remove that data as well.
-```{r}
-diffOnly[,2:2][diffOnly$Summary==diffOnly$Summary[c(18)]] <- NA
-diffOnly[,2:2][diffOnly$Summary==diffOnly$Summary[c(20)]] <- NA
-diffOnly <- na.omit(diffOnly)
-summary(df$Summary)
-plot(diffOnly$Temperature.Diff,diffOnly$Wind.Speed..km.h.,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
-plot(diffOnly$Temperature.Diff,diffOnly$Humidity,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])
-#These graphs show the overall descriptor of the weather. There are 27 options.
-plot(diffOnly$Temperature.Diff,diffOnly$Wind.Speed..km.h.,pch=21,bg=c("white","aquamarine","blue","brown","green","yellow","red","cyan","darkgray","darkgreen","magenta","orange","dodgerblue","forestgreen","gold","sienna","thistle","violet","springgreen","slateblue","wheat","tomato","yellowgreen","tan","lightblue","hotpink","darkred")[as.integer(df$Summary)])
-plot(diffOnly$Temperature.Diff,diffOnly$Humidity,pch=21,bg=c("white","aquamarine","blue","brown","green","yellow","red","cyan","darkgray","darkgreen","magenta","orange","dodgerblue","forestgreen","gold","sienna","thistle","violet","springgreen","slateblue","wheat","tomato","yellowgreen","tan","lightblue","hotpink","darkred")[as.integer(df$Summary)])
-
-```
-
-
+Now, we'll move on to the regression.
 
 
 ### Linear Regression: Simple
-Let's start with a linear regression model with one predictor, Humidity,and summarize it. 
+Let's start with a linear regression model with one predictor, wind speed, and summarize it. 
 ```{r}
-simplelinreg <- lm(df$Temperature.Diff~df$Humidity,data=train)
+simplelinreg <- lm(Temperature.Diff~Wind.Speed..km.h.,data=train)
 summary(simplelinreg)
 ```
-[insert explanation of info seen in the summary]
+So, it's better than nothing it seems. The R^2 isn't great, but we can see that there's enough of a correlation to count. We could get a better reading by using the actual temperature, since those are very closely related, but one goal of this is learning to understand how the change in temperature works based on other factors. 
 
 Lets plot the residual errors, and evaluate.
 ```{r}
@@ -181,7 +176,7 @@ plot(simplelinreg)
 ### Linear Regression: Multiple
 Let's up the complexity, now. We'll build a multiple linear regression model, and see if we can improve the accuracy.
 ```{r}
-multlinreg <- lm(df$Temperature.Diff~df$Humidity+df$Wind.Speed..km.h.+df$Precip.Type,data=train)
+multlinreg <- lm(Temperature.Diff~Humidity+Wind.Speed..km.h.+Precip.Type,data=train)
 summary(multlinreg)
 ```
 [short explanation of it]
@@ -189,7 +184,7 @@ summary(multlinreg)
 ### Linear Regression: Combinations
 Now let's go a step even farther. We'll use a combination of predictors, interaction effects, and polynomial regression to see if we can get even more accurate. 
 ```{r}
-combolinreg <- lm(df$Temperature.Diff~poly(df$Humidity+df$Wind.Speed..km.h.)+df$Precip.Type,data=train)
+combolinreg <- lm(Temperature.Diff~poly(Humidity*Wind.Speed..km.h.)+Precip.Type*Summary,data=train)
 summary(combolinreg)
 ```
 
@@ -205,7 +200,26 @@ simplecor <- cor(simplepred,test$Temperature.Diff)
 simplemse <- mean((simplepred-test$Temperature.Diff)^2)
 simplermse <- sqrt(simplemse)
 multpred <- predict(multlinreg,newdata=test)
+multcor <- cor(multpred,test$Temperature.Diff)
+multmse <- mean((multpred-test$Temperature.Diff)^2)
+multrmse <- sqrt(multmse)
 combopred <- predict(combolinreg,newdata=test)
+combocor <- cor(combopred,test$Temperature.Diff)
+combomse <- mean((combopred-test$Temperature.Diff)^2)
+combormse <- sqrt(combomse)
+#Output results
+print("-------Simple Model-------")
+print(paste("Correlation: ", simplecor))
+print(paste("MSE: ", simplemse))
+print(paste("RMSE: ", simplermse))
+print("-------Multiple Model-------")
+print(paste("Correlation: ", multcor))
+print(paste("MSE: ", multmse))
+print(paste("RMSE: ", multrmse))
+print("-------Combo Model-------")
+print(paste("Correlation: ", combocor))
+print(paste("MSE: ", combomse))
+print(paste("RMSE: ", combormse))
 ```
 [insert explanation, comparing the results and indicating why we think they happened]
 
