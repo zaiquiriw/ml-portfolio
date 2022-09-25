@@ -6,7 +6,7 @@ output:
     df_print: paged
 ---
 # Classification
-This time the goal is to take predictor values that are either qualitative or quantitative, and decide what to classify an observation. We will be using logistic regression and naive bayes, and then evaluated our results.
+This time we will be using linear models in order to classify observations. Linear models like logistic regression and Naive Bayes work by finding the probability of a target variable given a predictor variable. This means we are predicting a class as opposed to a continuous value like in linear regression. These models are great for data with outliers and are easy to implement and interpret. Linear regression isn't very flexible however, and Naive Bayes makes a naive assumption that predictors are independent. 
 
 ## What is Our Data?
 The weather data we used in our quantitative didn't have a suitable categorical target field, so we are switching to [income census data](https://www.kaggle.com/datasets/rdcmdev/adult-income-dataset). The data has a great binary classification in the form of an IncomeClass attribute that only states whether a given person's income is below or above 50k. We have plenty of categories for each person, and continuous measurements like age and work hours.
@@ -205,7 +205,7 @@ Dismissing those issues, good predictors are:
 This model makes me wonder what would happen if we selected a sample from this dataset that is less skewed, but I'm unsure what this would do to the accuracy of this model in the real world.
 
 #### Improving the Model
-We wanted to see if removing predictors would help the overall accuracy, especially given that our predictors are somewhat dependent on eachother. A brief search revealed that the anova function can show how adding each predictor effects the model.
+We wanted to see if removing predictors would help the overall accuracy, especially given that our predictors are somewhat dependent on each other. A brief search revealed that the anova function can show how adding each predictor effects the model.
 
 ```{r}
 anova(glm1, test="Chisq")
@@ -230,34 +230,83 @@ We also see the results for quantified predictors. For a continuous predictor li
 The model may just be finding the independent probabilities of the target event given each predictor but using all of the probabilities at once can provide a pretty good guess. Good enough to predict our training data!
 
 #### Issues in the Data
-It's worth noting once again that our predictors but our model here assumes they are. But that is why we call it naive! With such a large amount of data, probability can overcome the shortcomings of this assumption and we could get reasonably accurate predictions
+It's worth noting once again that our predictors may not be completely independent but our model here assumes they are. That is why we call it naive! With such a large amount of data, probability can overcome the shortcomings of this assumption and we could get reasonably accurate predictions
 
 ### Predictions
 ```{r}
 p1 <- predict(glm1, newdata=test, type="response")
-pr <- prediction(p1, test$IncomeClass)
-acc1 <- mean(pred==as.integer(test$IncomeClass))
-print(paste("glm1 accuracy = ", acc1))
-table(pred, (test$IncomeClass))
+pred <- ifelse(p1>0.5, ">50k", "<=50k")
+cm1 <- caret::confusionMatrix(as.factor(pred), reference=test$IncomeClass)
+cm1
 ```
 
 
 
 ```{r}
 p2 <- predict(nb1, newdata=test, type="class")
-table(p2, test$IncomeClass)
-mean(p2==test$IncomeClass)
+cm2 <- caret::confusionMatrix(as.factor(p2), test$IncomeClass)
+cm2
 ```
+
+```{r}
+cm1$byClass
+```
+
 
 #### Initial conclusion
 The initial conclusion to be drawn from our predictions is that our accuracy for both our models is okay, and our logistic regression model did better than our Naive Bayes. This could probably be due to Naive Bayes often doing better with small data sets while logistic regression works better with large datasets. On the other hand the logistic regression model might have still been overwhelmed by the amount of factors, and the accuracy was only ~84%.
 
-#### Evaluation
+The confusion matrix tells us True Positive, False Positive, True Negative, and False Negative results from applying the model to the test data. We can use the ratios between these numbers to evaluate useful metrics like accuracy or sensitivity.
+
+#### The Confusion Matrix
+```
+          Reference
+Prediction <=50k >50k
+     <=50k  6898 1225
+     >50k    498 1148
+```
+Just for an example we are looking at the naive bayes confusion matrix.
+- 6898: The number of True Positives
+- 1148: The number of True Negatives
+- 498:  The number of False Negatives
+- 1225: The number of False Positives
+
+We can use these to calculate other metrics
+
+#### Accuracy
+```
+Logistic R.: ~85%
+Naive Bayes: ~82%
+```
+
+The diagonals, or our true results, divided by all of our predictions is our accuracy, or the percentage we were correct. As you can see, our logistic regression model was accurate more of the time. Most likely because it thrived more with the large amount of data.
+
+#### Sensitivity & Specificity
+```
+Logistic R.: 0.9287 and 0.5874
+Naive Bayes: 0.9327 and 0.4838
+```
+Naive Bayes had a higher sensitivity, which is the number of true positives out of true positives + false negatives (the number of positives in the data). If we were trying to perhaps locate all people with "low" income but didn't care about our accuracy with people above 50k, the stat shows naive bayes could be useful.
+
+Specificity is the measure of true negatives in the negative class. We can tell then that we were much better at identifying our people with <=50k income than people with >50k income. However, logistic regression was still better than Naive Bayes in this stat.
+
+Well you ignore part of the data and perhaps get to ignore issues ini your model (like ignoring a bunch of false negatives), these are great for getting what matters out of data.
+
+#### Kappa
+```
+Logistic R.: 0.5519 
+Naive Bayes: 0.4648 
+```
+
+Woah! These aren't the best numbers, but considering this is a measure of accuracy that corrects for prediction by chance, I'm surprised the number is so high. The data set was skewed, it seemed a large margin of the success of our models was due to random chance. According to a reference on kappa scores though, these numbers are in "moderate agreement" with what is expected.
+
+Kappa is great for regarding datasets where the random chance of getting a prediction high is right. Of course, there isn't a consensus on what the number means on a scale, but its still generally useful.
+
+#### ROC Curves and AUC
 
 ```{r}
 library(ROCR)
-p <- predict(glm1, newdata=test, type="response")
-pr <- prediction(p, test$IncomeClass)
+pr <- prediction(p1, test$IncomeClass)
 prf <- performance(pr, measure = "tpr", x.measure = "fpr")
 plot(prf)
 # Compute AUC
@@ -268,17 +317,31 @@ auc
 
 ```{r}
 library(ROCR)
-p <- predict(nb1, newdata=test, type="class")
-pr <- prediction(predvec, realvec)
+p2 <- predict(nb1, newdata=test, type="raw")
+
+pr <- prediction(p2, test$IncomeClass)
 prf <- performance(pr, measure = "tpr", x.measure = "fpr")
 plot(prf)
 # Compute AUC
 auc <- performance(pr, measure = "auc")
-auc <- auc@y.values[[1]]
+auc <- auc@y.values[[1]]d
 auc
 ```
 
+#### Matthew's Correlation Coefficient (MCC):
+```{r}
+# Logistic Regression
+t <- table(pred, test$IncomeClass)
+tp <- t[1]
+fp <- t[3]
+fn <- t[2]
+tn <- t[4]
+```
+
+The MCC
 
 ### Strengths and Weaknesses
+Logistic Regression basically is attempting to draw a line between classes. It ends up being quite computationally inexpensive, easy to understand, and does its job well if classes are easy to separate. But because of it's simplicity as a line, it just isn't complex enough to capture complex non-linear decision boundaries. Naive Bayes is also simple, but with the added bonus that it works well with high dimensions (complex data sets) *if* they aren't too big. It's simple however because it assumes variables are independent, and ends up lacking with larger data sets.
 
-### Classification Metrics
+### Summary of Metrics
+Accuracy being the ratio of correct predictions to incorrect predictions, it is broadly useful. But often we are searching for subsections of accuracy. Sensitivity is good for detecting the amount we get one (the positive) class and ignores the other. Specificity on the other hand is the ratio of correct negative classes. This means we can use these metrics to see how ell our data is at guessing what matters in the at. If we want to see general accuracy, but account for the chance of getting the prediction randomly correct, Kappa is great for checking that.
