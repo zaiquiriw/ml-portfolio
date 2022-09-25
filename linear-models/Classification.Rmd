@@ -9,9 +9,11 @@ output:
 This time the goal is to take predictor values that are either qualitative or quantitative, and decide what to classify an observation. We will be using logistic regression and naive bayes, and then evaluated our results.
 
 ## What is Our Data?
-The weather data we used in our quantitative didn't have a suitable categorical target field, so we are switching to [income census data](https://www.kaggle.com/datasets/rdcmdev/adult-income-dataset). The data has a great binary classification in the form of an income attribute that only states whether a given person's income is below or above 50k. We have plenty of categories for each person, and continuous measurements like age and work hours.
+The weather data we used in our quantitative didn't have a suitable categorical target field, so we are switching to [income census data](https://www.kaggle.com/datasets/rdcmdev/adult-income-dataset). The data has a great binary classification in the form of an IncomeClass attribute that only states whether a given person's income is below or above 50k. We have plenty of categories for each person, and continuous measurements like age and work hours.
 
 The census itself is from the year 1994, and spans various socieo-economic groups. We both trying to predict this income classification based on all of the data, as well as just get an understanding of some key predictors in the data.
+
+With IncomeClass as our target, lets analyze the data!
 
 ### Reading the Data
 The data is stored as two files, with rows just delimited by commas, so we read them in to one whole data frame, and label the headers manual using our source as a reference. It's worth noting that this data was extracted with the intention of creating a classification model, so the two files are meant to be training and test data, but we are going to re-distribute the data later.
@@ -101,10 +103,15 @@ For one more look lets see some correlation data. Curious how much capital loss 
 cor(train$Age, train$CapitalLoss)
 ```
 
-Knowing I have a good idea of what the range of my data is, and what it represents, we want to *look* at the data.
+#### Text Analysis Conclusion
+We fear the skew of my data towards 1 type of person (Married Men about to hit their 40's) will make the model's we produce perform well for our dataset, but fail to get any real world accuracy. Obviously if this model was actually destined to predict in the real world if people's income was above or below a certain level (in the 1990's), well if we had all this data we would probably already know their income. So the model is a pointless but fun experiment...
+
+Regardless it is worth noting that a transformation of the data before running logistic regression or naive bayes could produce better results, but it is beyond the scope of this experiment.
+
+While it is probably a realistic distribution of income class (3 people with less than 50k for every person over 50k), the data may just guess that everyone doesn't make that much money due to the skew. This actually is a lot more important then skewed predictors, as our eventual precision/recall could be quite bad. For now, simply observing this is good enough, but this should be onsidered for the final analysis. (And perhaps in our comparision between Bayes and logistic regression).
 
 ### Visual Analysis
-First things first, I want to see how our target, IncomeClass relates to our numerical data:
+We want to see how our target, IncomeClass relates to our numerical data:
 ```{r}
 plot(x = train$IncomeClass, y=train$Age, ylab="", xlab="Income", main="Age")
 plot(x = train$IncomeClass, y=train$CapitalLoss, ylab="", xlab="Income", main="Capital Loss")
@@ -112,7 +119,7 @@ plot(x = train$IncomeClass, y=train$CapitalGain, ylab="", xlab="Income", main="C
 plot(x = train$IncomeClass, y=train$HoursWorked, ylab="", xlab="Income", main="Hours Worked")
 ```
 
-You can definitely see in the ease graphs, particular age and hours worked, that there are grounds to predict this income classification based on the predictor data.
+Numerical trends are just easier to spot, especially the effect of age on IncomeClass. You can definitely see in the ease graphs, particular age and hours worked, that there are *some* grounds to predict this income classification based on the predictor data.
 
 For another view:
 ```{r}
@@ -127,7 +134,11 @@ Above we can see a couple trends relating to Income Class:
   - It seems the more hours worked, the higher your chances of making it over 50k
   - Right around 50 years old is when people were the most likely to make >50k
 
-We have seen a lot of trends in the data that relate our predictors to our target factor, but now it is time to see if all of those predictors together have a good chance of classifying them into the >50k or <=50k levels.
+#### Visual Analysis Conclusion
+There are so many different factors in this data, that we think assuming the factors are independent could harm the 
+eventual accuracy of our linear models. While we can graph individual factors relation to the target, there are complicated relationships between the predictor data. We may be able to guess that more education would lead to a higher income, but an in-depth analysis of how gender or native country may hamper access to education isnt represented by just the relationship from gender to income. To the final product, it just *looks* like you can bet women make less money, even if that may be due to a compaction of other factors.
+
+Just a couple trends are seen above, and they still tell us that there is some merit to this data being alble to predict relations between our predictors and our target. Now it is time to see if all of those predictors together have a good chance of classifying them into the >50k or <=50k levels.
 
 ## Classification Regression
 ### Logistic Regression
@@ -135,21 +146,139 @@ We have seen a lot of trends in the data that relate our predictors to our targe
 glm1 <- glm(IncomeClass~., data=train, family=binomial)
 summary(glm1)
 ```
+Ah! Well we sure do get to get to view the impact of every level (dummy variable) on the output model. Before analyzing the coefficients predicted by the model, I want to examine which attributes were better for the model as compared to others.
+
+#### Explanation
+The data produced by the model is the coefficients of each predictor. The coefficient represents the effect the value of the predictor has on our target. If we have a positive coefficient like age, as age goes up we can expect the probability of our target (IncomeClass) to go up. The final model then considers each of these coefficients in it's prediction. Different parts of the data are:
+- Deviance Residuals:
+- The Null Deviance:
+- Residual Deviance:
+- Degrees of Freedom:
+- AIC:
+- Fisher Scoring Iterations:
+- Standard Error:
+- Z Value:
+- P Value:
+
+#### Looking at P-Values
+A coefficient estimate's p-values can tell us which features are valuable predictors. However, because the data is mostly qualitative, each level of each factor has a different impact on the data. 
+
+WorkClass seems like it is a good predictor *overall*, but if a given person's WorkClass is Never-worked, well the p-value is huge! Now, obviously if you have never worked your income isn't going to be very high, and the model estimates a high negative correlation. Yet the P-Value is super high!
+
+This could be due to a number of factors:
+- The sample size of people who have never worked in this data is much smaller than the total population.
+- Our target factor is skewed, so this predictor can't differ too much from the null hypothesis 
+- People who have never worked have varying life experiences, so the final accuracy of their coefficients isn't going to be able to fit the data
+
+As humans we can see the this coefficient should be significant, so perhaps this isn't the best dataset for logistic regression. The summary of the model basically is this: 
+
+> While factors that you would expect to negatively impact income class do have large negative coefficents their p-values are very large because the overall target is very skewed (probably) towards what they are predicting (low income).
+
+#### Probability Warning
+Another issue with the data is the warning:
+
+> `Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred`
+
+This error occurs when our model fits the data so well it is most likely too perfect. This means there is *somewhat likely* an error in our data. We can check it by looking at a couple predictions:
+
+```{r}
+head(predict(glm1, train, type="response"), 30) # Looking at some probabilities
+```
+
+Looking at just 30 fitted probabilities we see that not every single probability is 1 or 0, but another warning:
+
+> Warning: prediction from a rank-deficent fit may be misleading
+
+This means our number of linearly independent columns does not equal the number of parameters. Funny enough, the actual model throws out what it believes are perfectly colinear variables, causing this warning. The solution would then be to remove the colinear attributes, which will be done in just a moment.
+
+#### Initial Impressions
+
+Dismissing those issues, good predictors are:
+- Age
+- Work Class
+- Education (Specifically higher education)
+- Job
+- Marriage Status
+- Sex
+- Hours Worked
+
+This model makes me wonder what would happen if we selected a sample from this dataset that is less skewed, but I'm unsure what this would do to the accuracy of this model in the real world.
+
+#### Improving the Model
+We wanted to see if removing predictors would help the overall accuracy, especially given that our predictors are somewhat dependent on eachother. A brief search revealed that the anova function can show how adding each predictor effects the model.
+
+```{r}
+anova(glm1, test="Chisq")
+```
+
+Looking below, we can tell that each addition to the model is statistically relevant
+
+#### Conclusions
+There are issues with the data, mostly a high bias and a skewed target variable, but our current model still could give good predictions given a similar data set. If you took another sample of census data just after this one it could probably predict income class a bit
+
+### Naive Bayes Model
+```{r}
+library(e1071)
+nb1 <- naiveBayes(train$IncomeClass~., data=train)
+nb1
+```
+
+Naive Bayes produces a model that first finds the prior probability (A-priori, or the probability of having <=50k or >50k with no considerations of other data) and then finds the probability of the income given each condition independently. For example the table for Sex states that the probability that someone is female given that you make less than 50k is ~40%, while if a person makes more than 50k the chance they are a woman is ~15%.
+
+We also see the results for quantified predictors. For a continuous predictor like age, the mean age for people <=50k is 36.85352 while people >50k are older at a mean of 44.32006 years old.
+
+The model may just be finding the independent probabilities of the target event given each predictor but using all of the probabilities at once can provide a pretty good guess. Good enough to predict our training data!
+
+#### Issues in the Data
+It's worth noting once again that our predictors but our model here assumes they are. But that is why we call it naive! With such a large amount of data, probability can overcome the shortcomings of this assumption and we could get reasonably accurate predictions
+
+### Predictions
+```{r}
+p1 <- predict(glm1, newdata=test, type="response")
+pr <- prediction(p1, test$IncomeClass)
+acc1 <- mean(pred==as.integer(test$IncomeClass))
+print(paste("glm1 accuracy = ", acc1))
+table(pred, (test$IncomeClass))
+```
+
 
 
 ```{r}
-probs <- predict(glm1, newdata=test, type="response")
-pred <- ifelse(probs>0.5, 2, 1)
-acc1 <- mean(pred==as.integer(test$IncomeClass))
-print(paste("glm1 accuracy = ", acc1))
-table(pred, as.integer(test$IncomeClass))
+p2 <- predict(nb1, newdata=test, type="class")
+table(p2, test$IncomeClass)
+mean(p2==test$IncomeClass)
 ```
 
-### Naive Bayes Model
-### Analysis
-Simple Accuracy
-MCC - TP, FP, TN, FN
-#### Predictions?
-#### Reality?
+#### Initial conclusion
+The initial conclusion to be drawn from our predictions is that our accuracy for both our models is okay, and our logistic regression model did better than our Naive Bayes. This could probably be due to Naive Bayes often doing better with small data sets while logistic regression works better with large datasets. On the other hand the logistic regression model might have still been overwhelmed by the amount of factors, and the accuracy was only ~84%.
+
+#### Evaluation
+
+```{r}
+library(ROCR)
+p <- predict(glm1, newdata=test, type="response")
+pr <- prediction(p, test$IncomeClass)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)
+# Compute AUC
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+auc
+```
+
+```{r}
+library(ROCR)
+p <- predict(nb1, newdata=test, type="class")
+pr <- prediction(predvec, realvec)
+prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+plot(prf)
+# Compute AUC
+auc <- performance(pr, measure = "auc")
+auc <- auc@y.values[[1]]
+auc
+```
+
+
 ### Strengths and Weaknesses
-## Classification Metrics
+
+### Classification Metrics
