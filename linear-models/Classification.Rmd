@@ -235,7 +235,9 @@ It's worth noting once again that our predictors may not be completely independe
 ### Predictions
 ```{r}
 p1 <- predict(glm1, newdata=test, type="response")
-pred <- ifelse(p1>0.5, ">50k", "<=50k")
+pred1 <- ifelse(p1>0.5, ">50k", "<=50k")
+head(pred1)
+head(test$IncomeClass)
 cm1 <- caret::confusionMatrix(as.factor(pred), reference=test$IncomeClass)
 cm1
 ```
@@ -244,6 +246,8 @@ cm1
 
 ```{r}
 p2 <- predict(nb1, newdata=test, type="class")
+head(p2)
+head(test$IncomeClass)
 cm2 <- caret::confusionMatrix(as.factor(p2), test$IncomeClass)
 cm2
 ```
@@ -315,12 +319,13 @@ auc <- auc@y.values[[1]]
 auc
 ```
 
+TODO GRAYYYY
+
 ```{r}
 library(ROCR)
 p2 <- predict(nb1, newdata=test, type="raw")
 
-pr <- prediction(p2, test$IncomeClass)
-prf <- performance(pr, measure = "tpr", x.measure = "fpr")
+prf <- performance(p2, measure = "tpr", x.measure = "fpr")
 plot(prf)
 # Compute AUC
 auc <- performance(pr, measure = "auc")
@@ -336,9 +341,17 @@ tp <- t[1]
 fp <- t[3]
 fn <- t[2]
 tn <- t[4]
+mltools::mcc(as.factor(pred), test$IncomeClass)
 ```
 
-The MCC
+```{r}
+# Naive Bayes
+mltools::mcc(p2, test$IncomeClass)
+```
+
+The MCC is a metric that basically gives a good value if you get a good reliable rate in all 4 values of the confusion matrix. The values are considered in proportional the size of the positive and negative values. Rather then combining the sensitivity and specificity of a metric into a single metric (like with an F1-Score), MCC considers the size of of negative samples. MCC's account for class distribution makes it great at providing an accuracy rating for the whole model rated from -1 to 1.
+
+.4771213 is smack dab in between a perfect model (1) and a model that is perfectly average (0). Pretty good!
 
 ### Strengths and Weaknesses
 Logistic Regression basically is attempting to draw a line between classes. It ends up being quite computationally inexpensive, easy to understand, and does its job well if classes are easy to separate. But because of it's simplicity as a line, it just isn't complex enough to capture complex non-linear decision boundaries. Naive Bayes is also simple, but with the added bonus that it works well with high dimensions (complex data sets) *if* they aren't too big. It's simple however because it assumes variables are independent, and ends up lacking with larger data sets.
