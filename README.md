@@ -33,4 +33,4 @@ As we are learning R, we need a refresher on C++, so this was that. [The documen
 
 
 ### 2: Linear Models
-Well this was hard! Work on linear regression can be found [here](https://github.com/zaiquiriw/ml-portfolio/blob/main/linear models/Regression.pdf) and linear classification can be found [here](https://github.com/zaiquiriw/ml-portfolio/blob/main/linear models/Classification.pdf)!
+Well this was hard! Work on linear regression can be found [here](https://github.com/zaiquiriw/ml-portfolio/blob/main/linear-models/Regression.pdf) and linear classification can be found [here](https://github.com/zaiquiriw/ml-portfolio/blob/main/linear-models/Classification.pdf)!
