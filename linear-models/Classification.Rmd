@@ -2,6 +2,7 @@
 title: "Classification"
 author: "Zachary Canoot & Gray Simpson"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
@@ -238,7 +239,7 @@ p1 <- predict(glm1, newdata=test, type="response")
 pred1 <- ifelse(p1>0.5, ">50k", "<=50k")
 head(pred1)
 head(test$IncomeClass)
-cm1 <- caret::confusionMatrix(as.factor(pred), reference=test$IncomeClass)
+cm1 <- caret::confusionMatrix(as.factor(pred1), reference=test$IncomeClass)
 cm1
 ```
 
@@ -321,30 +322,23 @@ auc <- auc@y.values[[1]]
 auc
 ```
 
-TODO GRAYYYY
-
 ```{r}
 library(ROCR)
-head(ifelse(p1>0.5, ">50k", "<=50k"))
-head(test$IncomeClass)
-pr2 <- prediction(p2, test$IncomeClass)
-prf <- performance(pr2, measure = "tpr", x.measure = "fpr")
-plot(prf)
+p2raw <- predict(nb1, newdata=test, type="raw")[,2]
+pr2 <- prediction(p2raw,as.numeric(test$IncomeClass))
+prf2 <- performance(pr2, measure = "tpr", x.measure = "fpr")
+plot(prf2)
+
 # Compute AUC
-auc <- performance(pr, measure = "auc")
-auc <- auc@y.values[[1]]d
+auc <- performance(pr2, measure = "auc")
+auc <- auc@y.values[[1]]
 auc
 ```
 
 #### Matthew's Correlation Coefficient (MCC):
 ```{r}
 # Logistic Regression
-t <- table(pred, test$IncomeClass)
-tp <- t[1]
-fp <- t[3]
-fn <- t[2]
-tn <- t[4]
-mltools::mcc(as.factor(pred), test$IncomeClass)
+mltools::mcc(as.factor(pred1), test$IncomeClass)
 ```
 
 ```{r}
