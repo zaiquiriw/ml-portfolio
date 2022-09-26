@@ -310,6 +310,8 @@ Kappa is great for regarding datasets where the random chance of getting a predi
 
 ```{r}
 library(ROCR)
+head(p1)
+head(test$IncomeClass)
 pr <- prediction(p1, test$IncomeClass)
 prf <- performance(pr, measure = "tpr", x.measure = "fpr")
 plot(prf)
@@ -323,9 +325,10 @@ TODO GRAYYYY
 
 ```{r}
 library(ROCR)
-p2 <- predict(nb1, newdata=test, type="raw")
-
-prf <- performance(p2, measure = "tpr", x.measure = "fpr")
+head(ifelse(p1>0.5, ">50k", "<=50k"))
+head(test$IncomeClass)
+pr2 <- prediction(p2, test$IncomeClass)
+prf <- performance(pr2, measure = "tpr", x.measure = "fpr")
 plot(prf)
 # Compute AUC
 auc <- performance(pr, measure = "auc")
@@ -349,8 +352,6 @@ mltools::mcc(as.factor(pred), test$IncomeClass)
 mltools::mcc(p2, test$IncomeClass)
 ```
 
-The MCC is a metric that basically gives a good value if you get a good reliable rate in all 4 values of the confusion matrix. The values are considered in proportional the size of the positive and negative values. Rather then combining the sensitivity and specificity of a metric into a single metric (like with an F1-Score), MCC considers the size of of negative samples. MCC's account for class distribution makes it great at providing an accuracy rating for the whole model rated from -1 to 1.
-
 .4771213 is smack dab in between a perfect model (1) and a model that is perfectly average (0). Pretty good!
 
 ### Strengths and Weaknesses
@@ -358,3 +359,11 @@ Logistic Regression basically is attempting to draw a line between classes. It e
 
 ### Summary of Metrics
 Accuracy being the ratio of correct predictions to incorrect predictions, it is broadly useful. But often we are searching for subsections of accuracy. Sensitivity is good for detecting the amount we get one (the positive) class and ignores the other. Specificity on the other hand is the ratio of correct negative classes. This means we can use these metrics to see how ell our data is at guessing what matters in the at. If we want to see general accuracy, but account for the chance of getting the prediction randomly correct, Kappa is great for checking that.
+
+Now ROC... well it graphs the true positive rate and the false positive rate (sensitivity and specificity). Unfortunately we tried til the deadline to get this to work for Naive Bayes but we swear we understand what it means! The name, Receiver Operator Characteristic curve comes from signal detection theory so it doesn't help much to remind what it means. However, basically it graphs the trade off of a model between sensitivity and specificity. The Area under the curve then represents how much the model is capable of distinguishing between classes.
+
+The MCC is a metric that basically gives a good value if you get a good reliable rate in all 4 values of the confusion matrix. The values are considered in proportional the size of the positive and negative values. Rather then combining the sensitivity and specificity of a metric into a single metric (like with an F1-Score), MCC considers the size of of negative samples. MCC's account for class distribution makes it great at providing an accuracy rating for the whole model rated from -1 to 1.
+
+
+## Conclusion
+We have 1 large takeaway from this data, linear data has limitations, and none of that is helped by having a skewed data set. In the future we would like to select a data set that has less of skewed target, or at least try to sample this data at a better ratio again. It was fun to look at though!
