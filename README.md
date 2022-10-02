@@ -34,3 +34,6 @@ As we are learning R, we need a refresher on C++, so this was that. [The documen
 
 ### 2: Linear Models
 Well this was hard! Work on linear regression can be found [here](https://github.com/zaiquiriw/ml-portfolio/blob/main/linear-models/Regression.pdf) and linear classification can be found [here](https://github.com/zaiquiriw/ml-portfolio/blob/main/linear-models/Classification.pdf)!
+
+### 3. Building Algorithms from Scratch
+Instead of just messing around with logistic regression and naive bayes, we build it from scratch. A blurb about the work can be found [here](https://github.com/zaiquiriw/ml-portfolio/blob/main/algo-from-scratch/documentation.pdf)
