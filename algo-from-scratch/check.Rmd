@@ -1,0 +1,42 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+df <- read.csv("titanic_project.csv")
+i <- c(1:800)
+train <- df[i,]
+test <- df[-i,]
+glm1 <- glm(survived~sex, data=train, family=binomial)
+probs <- predict(glm1,  newdata=test, type="response")
+pred <- ifelse(probs> 0.5, 1, 0)
+acc <- mean(pred == as.integer(test$survived))
+acc
+summary(glm1)
+
+```
+
+```{r}
+# function to return a vector of sigmoid values from an input matrix
+sigmoid <- function(z){
+  1.0 / (1+exp(-z))
+}
+# set up weight vector, label vector, and data matrix
+weights <- c(1, 1)
+weights
+data_matrix <- cbind(rep(1, nrow(train)), train$sex)
+head(data_matrix)
+```
+
+```{r}
+weights <- c(1, 1)  # repeat this for rerunning the block
+learning_rate <- 0.001
+
+for (i in 1:5000){
+  prob_vector <- sigmoid(data_matrix %*% weights)
+  error <- train$survived - prob_vector
+  weights <- weights + learning_rate * t(data_matrix) %*% error
+}
+weights
+```

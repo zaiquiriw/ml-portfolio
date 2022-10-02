@@ -1,0 +1,48 @@
+	// Initialize the weights
+	std::vector<double> weights;
+	for (int i = 0; i < predictors.size(); i++)
+	{
+		weights.push_back(0);
+	}
+
+	// Run the gradient descent algorithm
+	for (int i = 0; i < iterations; i++)
+	{
+		// Calculate the error
+		double error = 0;
+		for (int j = 0; j < data.size(); j++)
+		{
+			double prediction = 0;
+			for (int k = 0; k < predictors.size(); k++)
+			{
+				prediction += weights[k] * data[j][predictors[k]];
+			}
+			error += (prediction - data[j][target]) * (prediction - data[j][target]);
+		}
+		error /= data.size();
+
+		// Calculate the gradient
+		std::vector<double> gradient;
+		for (int j = 0; j < predictors.size(); j++)
+		{
+			double sum = 0;
+			for (int k = 0; k < data.size(); k++)
+			{
+				double prediction = 0;
+				for (int l = 0; l < predictors.size(); l++)
+				{
+					prediction += weights[l] * data[k][predictors[l]];
+				}
+				sum += (prediction - data[k][target]) * data[k][predictors[j]];
+			}
+			gradient.push_back(sum / data.size());
+		}
+
+		// Update the weights
+		for (int j = 0; j < weights.size(); j++)
+		{
+			weights[j] -= learning_rate * gradient[j];
+		}
+
+		// Print the error
+		std::cout << "Iteration " << i << ": " << error << std::endl;
