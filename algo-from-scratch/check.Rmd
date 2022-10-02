@@ -40,3 +40,17 @@ for (i in 1:5000){
 }
 weights
 ```
+
+Now to test Naive Bayes
+```{r}
+library(e1071)
+nb1 <- naiveBayes(survived~sex+pclass+age, data=train)
+nb1
+```
+
+
+```{r}
+p1 <- predict(nb1, newdata=test, type="class")
+table(p1, test$survived)
+mean(p1==test$survived)
+```

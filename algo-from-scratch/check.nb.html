@@ -1787,7 +1787,7 @@ acc</code></pre>
 <!-- rnb-source-begin eyJkYXRhIjoiYGBgclxuc3VtbWFyeShnbG0xKVxuYGBgIn0= -->
 <pre class="r"><code>summary(glm1)</code></pre>
 <!-- rnb-source-end -->
-<!-- rnb-output-begin eyJkYXRhIjoiXG5DYWxsOlxuZ2xtKGZvcm11bGEgPSBzdXJ2aXZlZCB+IHNleCwgZmFtaWx5ID0gYmlub21pYWwsIGRhdGEgPSB0cmFpbilcblxuRGV2aWFuY2UgUmVzaWR1YWxzOiBcbiAgICBNaW4gICAgICAgMVEgICBNZWRpYW4gICAgICAgM1EgICAgICBNYXggIFxuLTEuNjIwNiAgLTAuNjYwNyAgLTAuNjYwNyAgIDAuNzkxNiAgIDEuODA1MSAgXG5cbkNvZWZmaWNpZW50czpcbiAgICAgICAgICAgIEVzdGltYXRlIFN0ZC4gRXJyb3IgeiB2YWx1ZSBQcig+fHp8KSAgICBcbihJbnRlcmNlcHQpICAgMC45OTk5ICAgICAwLjEzMjQgICAgNy41NSA0LjM0ZS0xNCAqKipcbnNleCAgICAgICAgICAtMi40MTA5ICAgICAwLjE3MzEgIC0xMy45MyAgPCAyZS0xNiAqKipcbi0tLVxuU2lnbmlmLiBjb2RlczogIFxuMCDigJgqKirigJkgMC4wMDEg4oCYKirigJkgMC4wMSDigJgq4oCZIDAuMDUg4oCYLuKAmSAwLjEg4oCYIOKAmSAxXG5cbihEaXNwZXJzaW9uIHBhcmFtZXRlciBmb3IgYmlub21pYWwgZmFtaWx5IHRha2VuIHRvIGJlIDEpXG5cbiAgICBOdWxsIGRldmlhbmNlOiAxMDcwLjAwICBvbiA3OTkgIGRlZ3JlZXMgb2YgZnJlZWRvbVxuUmVzaWR1YWwgZGV2aWFuY2U6ICA4NDIuNTEgIG9uIDc5OCAgZGVncmVlcyBvZiBmcmVlZG9tXG5BSUM6IDg0Ni41MVxuXG5OdW1iZXIgb2YgRmlzaGVyIFNjb3JpbmcgaXRlcmF0aW9uczogNFxuIn0= -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5DYWxsOlxuZ2xtKGZvcm11bGEgPSBzdXJ2aXZlZCB+IHNleCwgZmFtaWx5ID0gYmlub21pYWwsIGRhdGEgPSB0cmFpbilcblxuRGV2aWFuY2UgUmVzaWR1YWxzOiBcbiAgICBNaW4gICAgICAgMVEgICBNZWRpYW4gICAgICAgM1EgICAgICBNYXggIFxuLTEuNjIwNiAgLTAuNjYwNyAgLTAuNjYwNyAgIDAuNzkxNiAgIDEuODA1MSAgXG5cbkNvZWZmaWNpZW50czpcbiAgICAgICAgICAgIEVzdGltYXRlIFN0ZC4gRXJyb3IgeiB2YWx1ZSBQcig+fHp8KSAgICBcbihJbnRlcmNlcHQpICAgMC45OTk5ICAgICAwLjEzMjQgICAgNy41NSA0LjM0ZS0xNCAqKipcbnNleCAgICAgICAgICAtMi40MTA5ICAgICAwLjE3MzEgIC0xMy45MyAgPCAyZS0xNiAqKipcbi0tLVxuU2lnbmlmLiBjb2RlczogIDAg4oCYKioq4oCZIDAuMDAxIOKAmCoq4oCZIDAuMDEg4oCYKuKAmSAwLjA1IOKAmC7igJkgMC4xIOKAmCDigJkgMVxuXG4oRGlzcGVyc2lvbiBwYXJhbWV0ZXIgZm9yIGJpbm9taWFsIGZhbWlseSB0YWtlbiB0byBiZSAxKVxuXG4gICAgTnVsbCBkZXZpYW5jZTogMTA3MC4wMCAgb24gNzk5ICBkZWdyZWVzIG9mIGZyZWVkb21cblJlc2lkdWFsIGRldmlhbmNlOiAgODQyLjUxICBvbiA3OTggIGRlZ3JlZXMgb2YgZnJlZWRvbVxuQUlDOiA4NDYuNTFcblxuTnVtYmVyIG9mIEZpc2hlciBTY29yaW5nIGl0ZXJhdGlvbnM6IDRcbiJ9 -->
 <pre><code>
 Call:
 glm(formula = survived ~ sex, family = binomial, data = train)
@@ -1801,8 +1801,7 @@ Coefficients:
 (Intercept)   0.9999     0.1324    7.55 4.34e-14 ***
 sex          -2.4109     0.1731  -13.93  &lt; 2e-16 ***
 ---
-Signif. codes:  
-0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
 (Dispersion parameter for binomial family taken to be 1)
 
@@ -1862,8 +1861,66 @@ weights</code></pre>
 [2,] -2.4108644</code></pre>
 <!-- rnb-output-end -->
 <!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<p>Now to test Naive Bayes</p>
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubGlicmFyeShlMTA3MSlcbm5iMSA8LSBuYWl2ZUJheWVzKHN1cnZpdmVkfnNleCtwY2xhc3MrYWdlLCBkYXRhPXRyYWluKVxubmIxXG5gYGAifQ== -->
+<pre class="r"><code>library(e1071)
+nb1 &lt;- naiveBayes(survived~sex+pclass+age, data=train)
+nb1</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiXG5OYWl2ZSBCYXllcyBDbGFzc2lmaWVyIGZvciBEaXNjcmV0ZSBQcmVkaWN0b3JzXG5cbkNhbGw6XG5uYWl2ZUJheWVzLmRlZmF1bHQoeCA9IFgsIHkgPSBZLCBsYXBsYWNlID0gbGFwbGFjZSlcblxuQS1wcmlvcmkgcHJvYmFiaWxpdGllczpcbllcbiAgIDAgICAgMSBcbjAuNjEgMC4zOSBcblxuQ29uZGl0aW9uYWwgcHJvYmFiaWxpdGllczpcbiAgIHNleFxuWSAgICAgICAgWywxXSAgICAgIFssMl1cbiAgMCAwLjg0MDE2MzkgMC4zNjY4MzAwXG4gIDEgMC4zMjA1MTI4IDAuNDY3NDIzNFxuXG4gICBwY2xhc3NcblkgICAgICAgWywxXSAgICAgWywyXVxuICAwIDIuNDMwMzI4IDAuNzY4NTE3XG4gIDEgMS45MDM4NDYgMC44NTQ1NjFcblxuICAgYWdlXG5ZICAgICAgIFssMV0gICAgIFssMl1cbiAgMCAzMC40MTgyMCAxNC4zMjMxNVxuICAxIDI4LjgyNjEyIDE0LjQ2MjIwXG4ifQ== -->
+<pre><code>
+Naive Bayes Classifier for Discrete Predictors
 
-<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpgYGB7cn0NCmRmIDwtIHJlYWQuY3N2KCJ0aXRhbmljX3Byb2plY3QuY3N2IikNCmkgPC0gYygxOjgwMCkNCnRyYWluIDwtIGRmW2ksXQ0KdGVzdCA8LSBkZlstaSxdDQpnbG0xIDwtIGdsbShzdXJ2aXZlZH5zZXgsIGRhdGE9dHJhaW4sIGZhbWlseT1iaW5vbWlhbCkNCnByb2JzIDwtIHByZWRpY3QoZ2xtMSwgIG5ld2RhdGE9dGVzdCwgdHlwZT0icmVzcG9uc2UiKQ0KcHJlZCA8LSBpZmVsc2UocHJvYnM+IDAuNSwgMSwgMCkNCmFjYyA8LSBtZWFuKHByZWQgPT0gYXMuaW50ZWdlcih0ZXN0JHN1cnZpdmVkKSkNCmFjYw0Kc3VtbWFyeShnbG0xKQ0KDQpgYGANCg0KYGBge3J9DQojIGZ1bmN0aW9uIHRvIHJldHVybiBhIHZlY3RvciBvZiBzaWdtb2lkIHZhbHVlcyBmcm9tIGFuIGlucHV0IG1hdHJpeA0Kc2lnbW9pZCA8LSBmdW5jdGlvbih6KXsNCiAgMS4wIC8gKDErZXhwKC16KSkNCn0NCiMgc2V0IHVwIHdlaWdodCB2ZWN0b3IsIGxhYmVsIHZlY3RvciwgYW5kIGRhdGEgbWF0cml4DQp3ZWlnaHRzIDwtIGMoMSwgMSkNCndlaWdodHMNCmRhdGFfbWF0cml4IDwtIGNiaW5kKHJlcCgxLCBucm93KHRyYWluKSksIHRyYWluJHNleCkNCmhlYWQoZGF0YV9tYXRyaXgpDQpgYGANCg0KYGBge3J9DQp3ZWlnaHRzIDwtIGMoMSwgMSkgICMgcmVwZWF0IHRoaXMgZm9yIHJlcnVubmluZyB0aGUgYmxvY2sNCmxlYXJuaW5nX3JhdGUgPC0gMC4wMDENCg0KZm9yIChpIGluIDE6NTAwMCl7DQogIHByb2JfdmVjdG9yIDwtIHNpZ21vaWQoZGF0YV9tYXRyaXggJSolIHdlaWdodHMpDQogIGVycm9yIDwtIHRyYWluJHN1cnZpdmVkIC0gcHJvYl92ZWN0b3INCiAgd2VpZ2h0cyA8LSB3ZWlnaHRzICsgbGVhcm5pbmdfcmF0ZSAqIHQoZGF0YV9tYXRyaXgpICUqJSBlcnJvcg0KfQ0Kd2VpZ2h0cw0KYGBg</div>
+Call:
+naiveBayes.default(x = X, y = Y, laplace = laplace)
+
+A-priori probabilities:
+Y
+   0    1 
+0.61 0.39 
+
+Conditional probabilities:
+   sex
+Y        [,1]      [,2]
+  0 0.8401639 0.3668300
+  1 0.3205128 0.4674234
+
+   pclass
+Y       [,1]     [,2]
+  0 2.430328 0.768517
+  1 1.903846 0.854561
+
+   age
+Y       [,1]     [,2]
+  0 30.41820 14.32315
+  1 28.82612 14.46220</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+<!-- rnb-text-begin -->
+<!-- rnb-text-end -->
+<!-- rnb-chunk-begin -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxucDEgPC0gcHJlZGljdChuYjEsIG5ld2RhdGE9dGVzdCwgdHlwZT1cImNsYXNzXCIpXG50YWJsZShwMSwgdGVzdCRzdXJ2aXZlZClcbmBgYCJ9 -->
+<pre class="r"><code>p1 &lt;- predict(nb1, newdata=test, type=&quot;class&quot;)
+table(p1, test$survived)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiICAgXG5wMSAgICAwICAgMVxuICAwIDExMyAgMzVcbiAgMSAgMTggIDgwXG4ifQ== -->
+<pre><code>   
+p1    0   1
+  0 113  35
+  1  18  80</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-source-begin eyJkYXRhIjoiYGBgclxubWVhbihwMT09dGVzdCRzdXJ2aXZlZClcbmBgYCJ9 -->
+<pre class="r"><code>mean(p1==test$survived)</code></pre>
+<!-- rnb-source-end -->
+<!-- rnb-output-begin eyJkYXRhIjoiWzFdIDAuNzg0NTUyOFxuIn0= -->
+<pre><code>[1] 0.7845528</code></pre>
+<!-- rnb-output-end -->
+<!-- rnb-chunk-end -->
+
+<div id="rmd-source-code">LS0tDQp0aXRsZTogIlIgTm90ZWJvb2siDQpvdXRwdXQ6IGh0bWxfbm90ZWJvb2sNCi0tLQ0KDQpgYGB7cn0NCmRmIDwtIHJlYWQuY3N2KCJ0aXRhbmljX3Byb2plY3QuY3N2IikNCmkgPC0gYygxOjgwMCkNCnRyYWluIDwtIGRmW2ksXQ0KdGVzdCA8LSBkZlstaSxdDQpnbG0xIDwtIGdsbShzdXJ2aXZlZH5zZXgsIGRhdGE9dHJhaW4sIGZhbWlseT1iaW5vbWlhbCkNCnByb2JzIDwtIHByZWRpY3QoZ2xtMSwgIG5ld2RhdGE9dGVzdCwgdHlwZT0icmVzcG9uc2UiKQ0KcHJlZCA8LSBpZmVsc2UocHJvYnM+IDAuNSwgMSwgMCkNCmFjYyA8LSBtZWFuKHByZWQgPT0gYXMuaW50ZWdlcih0ZXN0JHN1cnZpdmVkKSkNCmFjYw0Kc3VtbWFyeShnbG0xKQ0KDQpgYGANCg0KYGBge3J9DQojIGZ1bmN0aW9uIHRvIHJldHVybiBhIHZlY3RvciBvZiBzaWdtb2lkIHZhbHVlcyBmcm9tIGFuIGlucHV0IG1hdHJpeA0Kc2lnbW9pZCA8LSBmdW5jdGlvbih6KXsNCiAgMS4wIC8gKDErZXhwKC16KSkNCn0NCiMgc2V0IHVwIHdlaWdodCB2ZWN0b3IsIGxhYmVsIHZlY3RvciwgYW5kIGRhdGEgbWF0cml4DQp3ZWlnaHRzIDwtIGMoMSwgMSkNCndlaWdodHMNCmRhdGFfbWF0cml4IDwtIGNiaW5kKHJlcCgxLCBucm93KHRyYWluKSksIHRyYWluJHNleCkNCmhlYWQoZGF0YV9tYXRyaXgpDQpgYGANCg0KYGBge3J9DQp3ZWlnaHRzIDwtIGMoMSwgMSkgICMgcmVwZWF0IHRoaXMgZm9yIHJlcnVubmluZyB0aGUgYmxvY2sNCmxlYXJuaW5nX3JhdGUgPC0gMC4wMDENCg0KZm9yIChpIGluIDE6NTAwMCl7DQogIHByb2JfdmVjdG9yIDwtIHNpZ21vaWQoZGF0YV9tYXRyaXggJSolIHdlaWdodHMpDQogIGVycm9yIDwtIHRyYWluJHN1cnZpdmVkIC0gcHJvYl92ZWN0b3INCiAgd2VpZ2h0cyA8LSB3ZWlnaHRzICsgbGVhcm5pbmdfcmF0ZSAqIHQoZGF0YV9tYXRyaXgpICUqJSBlcnJvcg0KfQ0Kd2VpZ2h0cw0KYGBgDQoNCk5vdyB0byB0ZXN0IE5haXZlIEJheWVzDQpgYGB7cn0NCmxpYnJhcnkoZTEwNzEpDQpuYjEgPC0gbmFpdmVCYXllcyhzdXJ2aXZlZH5zZXgrcGNsYXNzK2FnZSwgZGF0YT10cmFpbikNCm5iMQ0KYGBgDQoNCg0KYGBge3J9DQpwMSA8LSBwcmVkaWN0KG5iMSwgbmV3ZGF0YT10ZXN0LCB0eXBlPSJjbGFzcyIpDQp0YWJsZShwMSwgdGVzdCRzdXJ2aXZlZCkNCm1lYW4ocDE9PXRlc3Qkc3Vydml2ZWQpDQpgYGANCg==</div>
 
 
 

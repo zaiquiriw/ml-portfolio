@@ -266,12 +266,18 @@ void LogisticRegressionModel::predict()
 	std::cout << "Accuracy: " << (double)(tp + tn) / (double)probs.size() << std::endl;
 	// The amount of true positives divided by the total number of positives
 	// This is an indicator how well a model can predict the positive class
-	std::cout << "Sensitivity: " << (double)tp / (double)(tp + fp) << std::endl;
+	std::cout << "Sensitivity: " << (double)tp / (double)(tp + fn) << std::endl;
 	// The amount of true negatives divided by the total number of negatives
 	// This is an indicator how well a model can predict the negative class
-	std::cout << "Specificity: " << (double)tp / (double)(tp + fn) << std::endl;
+	std::cout << "Specificity: " << (double)tn / (double)(tn + fp) << std::endl;
 	// Training Time: From the
 	std::cout << "Training Time: " << this->training_time << "ms" << std::endl;
+
+	// Print the confusion matrix because Gray told me to.
+	std::cout << "Confusion Matrix:" << std::endl;
+	std::cout << "P. -> 0 1" << std::endl;
+	std::cout << "0 " << tn << " " << fn << std::endl;
+	std::cout << "1 " << fp << " " << tp << std::endl;
 }
 
 // main() just calls the function that initiates the program, but could be used
