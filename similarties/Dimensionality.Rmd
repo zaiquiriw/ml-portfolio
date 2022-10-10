@@ -1,0 +1,167 @@
+---
+title: "Dimensionality"
+author: Aarushi Pandey ^[[Aarushi's Portfolio](https://github.com/Aarushi-Pandey/Portfolio_ML)]
+        Brandon Runyon ^[[Brandon's Portfolio](https://github.com/Unicoranium/CS4375)]
+        Zachary Canoot ^[[Zaiquiri's Portfolio](https://zaiquiriw.github.io/ml-portfolio/)]
+        Gray Simpson ^[[Gray's Porfolio](https://ecclysium.github.io/MachineLearning_Portfolio/)]
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    css: styles/bootstrap.css
+    highlight: "kate"
+    toc: yes
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+  pdf_document: default
+---
+
+# What is Our Data?
+Using the dataset [Spotify Unpopular Songs](https://www.kaggle.com/datasets/estienneggx/spotify-unpopular-songs). It contains audio characteristics of many unpopular songs such as perceived intensity, key, decibels, popularity, and more. 
+
+Here, we're going to attempt to see if we can manage to find a way to sort songs into general classes (horrible, bad, meh, and passable) based off their popularity scores.
+
+# Exploring Our Data
+## Initial Processing
+In this notebook, we will be performing dimensionality reduction to attempt to improve performance and accuracy in kNN regression.
+
+Let's read in the data and take a peek.
+```{r}
+library(caret)
+df <- read.csv("data/unpopular_songs.csv")
+summary(df)
+```
+We can see we largely have quantitative data, with a few exceptions. Not all of these are useful, but we'll make whether or not its explicit a factor for now, as well as popularity (after we look at correlation). We'll also look for correlated values.
+```{r}
+df$explicit <- as.factor(df$explicit)
+summary(df)
+cor(df[c(1,2,3,4,5,6,7,8,9,10,11,12,14)])
+df$popularity <- as.factor(df$popularity)
+```
+We don't see a ton of clearly related values, though how many attributes we have does make it difficult to read. We'll hope that the algorithms will do well at reducing the amount of attributes we have entering into this data. 
+
+Let's take a closer look at popularity, now that its factored.
+```{r}
+summary(df$popularity)
+```
+Hmm, a few too many factors. Let's combine some of these with respect to how many are in each category.
+```{r}
+#install.packages("forcats")
+library(forcats)
+popularityclass <- fct_collapse(df$popularity, horrible=c('0','1'), bad=c('2','3','4','5'), meh=c('6','7','8','9','10','11','12'), passable=c('13','14','15','16','17','18'))
+
+df$popclass <- popularityclass
+```
+
+And now we'll be sure it worked.
+```{r}
+summary(df$popclass)
+names(df)
+```
+Cheers! Let's separate it into training data now.
+```{r}
+i <- sample(1:nrow(df),nrow(df)*.8,replace=FALSE)
+train <- df[i,]
+test <- df[-i,]
+```
+
+
+## Visual Exploration
+Now, let's look at some charts to understand things a bit better.
+```{r}
+pairs(df[c(3,4,6,8,9,11)])
+plot(density(df$loudness),lwd=2)
+plot(density(df$valence),lwd=2)
+plot(density(df$tempo),lwd=2)
+plot(density(df$speechiness),lwd=2)
+```
+We confirm that key, liveliness, and tempo are not very useful. We can now better understand how the data is laid out, and confirmed that correlation is difficult to find. This is why we will be using a kNN model to test dimensionality on this data.
+
+
+
+# Dimensionality Algorithms
+
+Okay, now let's run PCA on the data. We have a lot of columns to consider. We'll center and scale them while we're at it.
+```{r}
+set.seed(2022)
+pca_out <- preProcess(train[,1:10], method=c("center","scale","pca"),k=5)
+pca_out
+```
+We weren't able to remove much.
+
+
+Let's plot what we got. We'll put them on 3 separate 3d charts.
+```{r}
+train_pc <- predict(pca_out,train[,1:10])
+test_pc <-  predict(pca_out, test[,1:10])
+
+#install.packages("plotly")
+library(plotly)
+plot_ly(x=test_pc$PC1, y=test_pc$PC2, z=test_pc$PC3, type="scatter3d", mode="markers",color=test$popclass)
+plot_ly(x=test_pc$PC4, y=test_pc$PC5, z=test_pc$PC6, type="scatter3d", mode="markers",color=test$popclass)
+plot_ly(x=test_pc$PC7, y=test_pc$PC8, z=test_pc$PC9, type="scatter3d", mode="markers",color=test$popclass)
+```
+Things are not looking promising. We can hope that since it wasn't able to reduce much, though, that using all the predictors it created will help more, even if we can't visualize it.
+
+Let's try kNN on it.
+```{r}
+library(class)
+train_df <- data.frame(train_pc$PC1,train_pc$PC2,train_pc$PC3,train_pc$PC4,train_pc$PC5,train_pc$PC6,train_pc$PC7,train_pc$PC8,train_pc$PC9, train$popclass)
+test_df <- data.frame(test_pc$PC1,test_pc$PC2,test_pc$PC3,test_pc$PC4,test_pc$PC5,test_pc$PC6,test_pc$PC7,test_pc$PC8,test_pc$PC9, test$popclass)
+predknn <- knn(train=train_df[,1:9], test=test_df[,1:9], cl=train_df[,10], k=5)
+mean(predknn==test$popclass)
+confusionMatrix(data=predknn, reference=test$popclass)
+```
+Well, this doesn't seem like it was too helpful. We have a less than 50% chance of getting our classification correct, even we're looking at our larger trained classes. This well may be simply due to poor correlation in data, however. We weren't even able to reduce the data much. 
+On another data set, PCA may be more beneficial.
+
+
+
+# Linear Discriminant Analysis
+Let's see if LDA works better for our data set. However, we know well that out data is not linear, so hopes are low.
+```{r}
+library(MASS)
+ldapop <- MASS::lda(x=train[,1:12],grouping=train$popclass, data=train)
+#ldapop <- lda(train$popclass~., data=train)
+ldapop$means
+```
+Means were found well, and everything looks good. 
+We have to break it up for the sake of Plotly syntax, as it seemed to have some confusion due to commas in predictor names. PCA was strictly dimension reduction, but LDA also predicts, so we won't be using kNN this time.
+```{r}
+lda_pred <- predict(ldapop,newdata=test[,1:12],type="class")
+head(lda_pred$class)
+#lda_train <- predict(ldapop,data=train,type="class")
+
+```
+We know the majority of our data is in the 'bad' or 'horrible' range, so all looks good here.
+
+Now, let's plot it!
+```{r}
+library(plotly)
+plot(lda_pred$x[,1], lda_pred$x[,3], pch=c(16,17,18,15)[unclass(test_pc$popclass)], col=c("red","orange","yellow","green")[unclass(test$popclass)])
+xaxis <- lda_pred$x[,1]
+yaxis <- lda_pred$x[,2] 
+zaxis <- lda_pred$x[,3]
+target<- test$popclass
+plot_ly(x=xaxis,y=yaxis,z=zaxis,type="scatter3d",mode="markers",color=target)
+```
+Things are not looking promising. It looks largely the same as any of our charts from principal components, even though we were able to chart all the attributes that were produced to see a visible appearance in one go this time. 
+
+
+We now can check our confusion matrix and look into how well we actually managed to predict data.
+```{r}
+library(class)
+mean(lda_pred$class==test$popclass)
+confusionMatrix(data=lda_pred$class, reference=test$popclass)
+```
+The model entirely failed for 'okay' and 'passable' songs, which is not surprising considering our model visualization. It did slightly better than PCA with kNN, however. We are effectively worse than a coin flip, made worse only by there being 4 potential classes to choose from.
+
+
+# Conclusion and Analysis
+We chose this data since it being advertised for clustering made it seem like it would be good for kNN as well, and that the reduction would help simplify the large number of attributes. However, after interacting with it, this expectation was folly on our part. There is more that goes into making a dataset good for kNN. Thinking about the nature of our data, of bad songs on Spotify, we can also conclude that there isn't a ton of trend with what makes a song "bad". Perhaps from this data a genre may be able to be found via clustering, but popularity isn't an equation of things such as tempo, energy, instruments, or anything else. Sometimes a song is just bad for content or other reasons. 
+When it came down to it, PCA+kNN and LDA effectively made a coin flip then rated a song as 'bad' or 'horrible'. While the PCA attempt was able to occasionally succeed for the smaller classes, LDA may well have been more accurate due to the fact that it stuck to the larger classes and did not try to sort anything into the smaller classes.
+Since the values were so scattered, increasing the amount of data likely would not have helped significantly. The reality of it is that there is not much correlation, and that we have learned that PCA nor LDA is able to find or create correlation where there is none.
+
+
+
+

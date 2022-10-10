@@ -1,0 +1,267 @@
+---
+title: "Regession"
+author: Aarushi Pandey ^[[Aarushi's Portfolio](https://aarushi-pandey.github.io/Portfolio_ML/)]
+        Brandon Runyon ^[[Brandon's Portfolio]()]
+        Zachary Canoot ^[[Zaiquiri's Portfolio](https://zaiquiriw.github.io/ml-portfolio/)]
+        Gray Simpson ^[[Gray's Porfolio](https://ecclysium.github.io/MachineLearning_Portfolio/)]
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    css: styles/bootstrap.css
+    highlight: "kate"
+    toc: yes
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+  pdf_document: default
+---
+
+# What is Our Data?
+This notebook explores song data from [Kaggle](https://www.kaggle.com/datasets/budincsevity/szeged-weather). In particular, this is a Hungary dataset.
+
+# Exploring Our Data
+
+Load the weatherHistory.csv file. 
+```{r}
+df <- read.csv("data/weatherHistory.csv")
+df_temp <- df
+str(df)
+```
+
+Calculate difference in Apparent Temperature and Temperature and add it as new data field.
+```{r}
+df$Temperature.TempDiff <- df$Temperature..C. - df$Apparent.Temperature..C
+str(df)
+```
+Convert Precip.Type and Summary to factors (since they only have a few possible values)
+
+```{r}
+df$Precip.Type <- as.factor(df$Precip.Type)
+df$Summary <- as.factor(df$Summary)
+str(df)
+```
+Our goal is to see if we can see how other weather factors, such as Wind Speed and Humidity, relate to the difference between Apparent Temperature and actual Temperature. Though we identify apparent temperature as a very good predictor of the difference, we do not use this in this assignment as we are interested in exploring more the other factors that influence the disparity. 
+
+##a. We'll divide the data into train and test.
+```{r}
+set.seed(8)
+i <- sample(1:nrow(df),nrow(df)*.8,replace=FALSE)
+train <- df[i,]
+test <- df[-i,]
+```
+
+##b. Exploring training data:
+
+```{r}
+names(df)   # getting col names
+dim(df)   # getting number of rows and cols
+head(df)  # getting first 6 rows
+colMeans(df[4:11])   # calculating mean of linear cols
+```
+Since Loud.Cover col has a mean of 0, it might have NA values.
+```{r}
+colSums(is.na(df))
+sum(df$Loud.Cover)
+```
+In actuality, there are no NA values in Loud.Cover col. But since all the values there are 0, we will not gain much from using it in the prediction model. So we'll ignore it.
+
+```{r}
+summary(df)
+summary(df$Summary)  
+sum(df$Wind.Speed..km.h.==0)
+```
+It is unlikely that there is absolutely no wind so some of this data may not be accurate.
+
+We'll pull up some graphs to get a better idea of what we have to do, now. Yellow dots are null precipitation days, green is rain, and blue is snow.
+```{r}
+cor(df[4:7])
+boxplot(df$Temperature.TempDiff)
+boxplot(df$Humidity)
+boxplot(df$Wind.Speed..km.h.)
+plot(df$Temperature.TempDiff,df$Wind.Speed..km.h.,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])  # lots of 0 values
+plot(df$Temperature.TempDiff,df$Humidity,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])  # lots of 0 values
+plot(df$Temperature.TempDiff,df$Temperature..C.,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])  # lots of 0 values
+```
+
+Now, we'll clean up the data according to what we found. We'll clean up only what is referenced, but we will delete what we are uncertain about, since we have such a large amount of data.
+```{r}
+df[,6:7][df[,6:7]==0] <- NA  # change 0s to NA values in Humidity and Wind Speed cols
+df[,13:13][df[,13:13]==0] <- NA  # change 0s to NA values in TempDiff col
+df <- na.omit(df)  # since we have enough data we can omit those which have NA values
+summary(df)
+df_temp <- df
+```
+Make the graphs again.
+```{r}
+cor(df[4:7])
+boxplot(df$Temperature.TempDiff)
+boxplot(df$Humidity)
+boxplot(df$Wind.Speed..km.h.)
+plot(df$Temperature.TempDiff,df$Wind.Speed..km.h.,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])  # lots of 0 values
+plot(df$Temperature.TempDiff,df$Humidity,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])  # lots of 0 values
+plot(df$Temperature.TempDiff,df$Temperature..C.,pch=21,bg=c("yellow","green","blue")[as.integer(df$Precip.Type)])  # lots of 0 values
+```
+
+We'll clean up the train and test data again (removing the rows that had NA values).
+```{r}
+trainindex <- sample(1:nrow(df),nrow(df)*.8,replace=FALSE)
+train <- df[trainindex,]
+test <- df[-trainindex,]
+```
+# Regression Algorithms
+
+
+## Linear Regression (multiple columns)
+
+We'll use a combination of predictors, interaction effects, and polynomial regression to see if we can get an accurate regression model. 
+```{r}
+linreg <- lm(Temperature.TempDiff~poly(Humidity*Wind.Speed..km.h.)+Precip.Type+Summary,data=train)
+summary(linreg)
+par(mfrow=c(2,2))
+plot(linreg)
+```
+ We understand from our data exploration that Humidity, Wind Speed, and Precipitation Type all relate to the data in different ways. We can find different trends depending on what we're looking at, so we can ask the model to reference all of that data when its processing now. When the precipitation type was rain, it didn't add much to figuring things out, but knowing that it was in the snow range was very helpful. In addition, we added Summary as well as an interaction effect with precipitation. We made this decision based on the cloud of Partly Cloudy values that didn't seem to follow other data, and we can see that some specific Summary values were quite helpful in the result, and some were not.
+  
+  R^2 is almost 0.7, which is a good value. (We want R^2 to be close to 1.) The p-value is very low, and the RSE is low as well (less than 1 y-unit).
+  
+## kNN regression
+
+Load required library for prediction
+Since kNN model does not like factors, we will exclude it when making the model.
+We will only use numeric cols for prediction, and scale them too (since it produces better results that way).
+We will need to find the best k value before making the model.
+```{r}
+library(caret)
+str(df)
+df <- df_temp
+#df$Summary <- as.character(df$Summary)
+#df$Precip.Type <- as.character(df$Precip.Type)
+#str(df)
+#colnames(df)
+df <- df[-10]
+str(df)
+trainindex <- sample(1:nrow(df),nrow(df)*.8,replace=FALSE)
+train <- df[trainindex,]
+test <- df[-trainindex,]
+
+#Scaling training data
+train_scaled <- train[,4:10]
+means <- sapply(train_scaled, mean)
+stdevs <- sapply(train_scaled, sd)
+train_scaled <- scale(train_scaled, center=means, scale=stdevs)
+test_scaled <- scale(test[,4:10], center=means, scale=stdevs)
+
+#Finding the best k
+#Try various values of k and plot the results. 
+cor_k <- rep(0, 20)
+mse_k <- rep(0, 20)
+i <- 1
+for (k in seq(1, 39, 2)){
+  fit_k <- knnreg(train_scaled,train$Temperature.TempDiff, k=k)
+  pred_k <- predict(fit_k, test_scaled)
+  cor_k[i] <- cor(pred_k, test$Temperature.TempDiff)
+  mse_k[i] <- mean((pred_k - test$Temperature.TempDiff)^2)
+  print(paste("k=", k, cor_k[i], mse_k[i]))
+  i <- i + 1
+}
+plot(1:20, cor_k, lwd=2, col='red', ylab="", yaxt='n')
+par(new=TRUE)
+plot(1:20, mse_k, lwd=2, col='blue', labels=FALSE, ylab="", yaxt='n')
+
+#Find the best k
+which.min(mse_k)  # MSE is min when k = 3 (2nd array element)
+which.max(cor_k)  # COR is max when k = 5 (3rd array element)
+
+fit <- knnreg(train_scaled, train$Temperature.TempDiff, k=3)
+
+```
+  
+Since the min MSE index (2) and max COR index (3) don't coincide, we will arbitrarily choose to have the minimum MSE index where k = 3.
+
+## Decision tree regression
+
+Load required library for prediction
+
+```{r}
+#install.packages("tree")
+library(tree)
+#install.packages("MASS")
+library(MASS)
+str(df)
+
+
+```
+
+Can use all cols to predict the temperature difference in decision tree.
+Pruned the tree according to the best number of leaf nodes in the tree.
+```{r}
+tree1 <- tree(Temperature.TempDiff~., data=train)
+summary(tree1)
+treepred <- predict(tree1, newdata=test)
+print(paste('correlation:', cor(treepred, test$Temperature.TempDiff)))
+rmse_tree <- sqrt(mean((treepred-test$Temperature.TempDiff)^2))
+print(paste('rmse:', rmse_tree))
+plot(tree1)
+text(tree1, cex=0.5, pretty=0)
+
+# cross validation
+cv_tree <- cv.tree(tree1)
+plot(cv_tree$size, cv_tree$dev, type='b')
+
+# prune the tree
+tree_pruned <- prune.tree(tree1, best=5)
+plot(tree_pruned)
+text(tree_pruned, pretty=0)
+```
+
+## Predictions
+  Using the three models, we will predict and evaluate using the metric correlation and MSE. 
+```{r}
+
+linregpred <- predict(linreg,newdata=test)
+linregcor <- cor(linregpred,test$Temperature.TempDiff)
+linregmse <- mean((linregpred-test$Temperature.TempDiff)^2)
+linregrmse <- sqrt(linregmse)
+
+#Output results
+print("-------Linear Regression Model-------")
+print(paste("Correlation: ", linregcor))
+print(paste("MSE: ", linregmse))
+print(paste("RMSE: ", linregrmse))
+
+```
+
+```{r}
+knnpred <- predict(fit, test_scaled)
+knncor <- cor(knnpred, test$Temperature.TempDiff)
+knnmse <- mean((knnpred-test$Temperature.TempDiff)^2)
+knnrmse <- sqrt(knnmse)
+
+#Output results
+print("-------kNN Model-------")
+print(paste("Correlation: ", knncor))
+print(paste("MSE: ", knnmse))
+print(paste("RMSE: ", knnrmse))
+
+```
+
+```{r}
+# test on the pruned tree
+pred_pruned <- predict(tree_pruned, newdata=test)
+cor_pruned <- cor(pred_pruned, test$Temperature.TempDiff)
+mse_pruned <- mean((pred_pruned-test$Temperature.TempDiff)^2)
+rmse_pruned <- sqrt(mse_pruned)
+
+#Output results
+print("-------Decision Tree Model-------")
+print(paste("Correlation: ", cor_pruned))
+print(paste("MSE: ", mse_pruned))
+print(paste("RMSE: ", rmse_pruned))
+```
+  The highest correlation was by the kNN regression model (0.99), followed by the decision tree regression model (0.87), and lastly the linear regression model (0.84). Unsurprisingly, the order for the lowest mean squared error and root mean squared error is in the same ordeR: kNN (0.034 MSE and 0.18 RMSE), decision tree (0.69 MSE and 0.83 RMSE), and linear model (0.85 MSE and 0.92 RMSE). By analyzing the results, it is easy to conclude that the kNN model is the best for predicting the difference in the actual and apparent temperatures. 
+  
+#d. Conclusion and Analysis
+
+ Due to kNN not being interpretable, it is hard to pinpoint exactly why this model predicts better than other models. Something we did different when preparing the data for this model was scaling the numeric columns before using them to predict the difference in temperatures. This scaling of the data could have created better predictors than our original columns. 
+ The decision tree model also did quite well, despite not being the most accurate algorithm (since it is a greedy algorithm that can only divide data by making linear boundaries). However, it is highly interpretable and seemed to find significant predictors (apparent temperature and wind speed) easily. 
+ For the linear model, it was up to us to choose the predictors, and we chose humidity, wind speed, precipitation type, and summary. It is easy to understand that due to limited information and data exploration, we may have picked unnecessary predictors or excluded significant ones. In this case, the true relationship between the different temperatures may not have been linear which prevented this model from being more accurate. 

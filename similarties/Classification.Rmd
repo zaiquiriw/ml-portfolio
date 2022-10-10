@@ -1,0 +1,257 @@
+---
+title: "Classification"
+author: Aarushi Pandey ^[[Aarushi's Portfolio](https://github.com/Aarushi-Pandey/Portfolio_ML)]
+        Brandon Runyon ^[[Brandon's Portfolio](https://github.com/Unicoranium/CS4375)]
+        Zachary Canoot ^[[Zaiquiri's Portfolio](https://zaiquiriw.github.io/ml-portfolio/)]
+        Gray Simpson ^[[Gray's Porfolio](https://ecclysium.github.io/MachineLearning_Portfolio/)]
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    css: styles/bootstrap.css
+    highlight: "kate"
+    toc: yes
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+  pdf_document: default
+---
+
+# What is Our Data?
+
+Each observation is a set of 5 cards and the resulting rank of the hand based on standard poker rules.
+
+0: Nothing in hand; not a recognized poker hand
+1: One pair; one pair of equal ranks within five cards
+2: Two pairs; two pairs of equal ranks within five cards
+3: Three of a kind; three equal ranks within five cards
+4: Straight; five cards, sequentially ranked with no gaps
+5: Flush; five cards with the same suit
+6: Full house; pair + different rank three of a kind
+7: Four of a kind; four equal ranks within five cards
+8: Straight flush; straight + flush
+9: Royal flush; {Ace, King, Queen, Jack, Ten} + flush
+
+Data was given already split. Combining them so I can split it myself.
+
+```{r}
+df1 <- read.csv("data/poker-hand-testing.csv")
+df2 <- read.csv("data/poker-hand-training.csv")
+df <- rbind(df1, df2)
+rm(df1)
+rm(df2)
+str(df)
+```
+Convert all columns to factors
+
+```{r}
+df$Suit.of.Card.1 <- factor(df$Suit.of.Card.1)
+df$Suit.of.Card.2 <- factor(df$Suit.of.Card.2)
+df$Suit.of.Card.3 <- factor(df$Suit.of.Card.3)
+df$Suit.of.Card.4 <- factor(df$Suit.of.Card.4)
+df$Suit.of.Card.5 <- factor(df$Suit.of.Card.5)
+
+df$Rank.of.Card.1 <- factor(df$Rank.of.Card.1)
+df$Rank.of.Card.2 <- factor(df$Rank.of.Card.2)
+df$Rank.of.Card.3 <- factor(df$Rank.of.Card.3)
+df$Rank.of.Card.4 <- factor(df$Rank.of.Card.4)
+df$Rank.of.Card.5 <- factor(df$Rank.of.Card.5)
+
+df$Poker.Hand <- factor(df$Poker.Hand)
+str(df)
+```
+
+Check for NA values.
+
+```{r}
+sapply(df, function(x) sum(is.na(x)==TRUE))
+```
+
+
+# Exploring Our Data
+
+Check distribution of hand results. Significantly less of the higher hands. This may result in less accurate data for those. The rank and suit distributions however, seem uniform as expected.
+
+```{r}
+table(df$Poker.Hand)
+
+table(df$Suit.of.Card.1)
+table(df$Suit.of.Card.2)
+table(df$Suit.of.Card.3)
+table(df$Suit.of.Card.4)
+table(df$Suit.of.Card.5)
+
+table(df$Rank.of.Card.1)
+table(df$Rank.of.Card.2)
+table(df$Rank.of.Card.3)
+table(df$Rank.of.Card.4)
+table(df$Rank.of.Card.5)
+```
+
+
+Which card is selected seems to only alter the chance of the rarer hands. This makes sense since the order of the cards doesn't matter when scoring a hand, but the low amount of data for higher scores will likely have noise.
+```{r}
+opar <- par(no.readonly = TRUE)
+par(mfrow=c(1,1))
+plot(df$Poker.Hand, df$Rank.of.Card.1, main="First card", ylab="")
+plot(df$Poker.Hand, df$Rank.of.Card.2, main="Second card", ylab="")
+plot(df$Poker.Hand, df$Rank.of.Card.3, main="Third card", ylab="")
+plot(df$Poker.Hand, df$Rank.of.Card.4, main="Fourth card", ylab="")
+plot(df$Poker.Hand, df$Rank.of.Card.5, main="Fifth card", ylab="")
+par(opar)
+```
+
+Only viewing the rarer hands.
+
+```{r}
+opar <- par(no.readonly = TRUE)
+par(mfrow=c(1,1))
+sub <- subset(df,as.integer(Poker.Hand) > 6)
+sub$Poker.Hand <- droplevels(sub$Poker.Hand)
+plot(sub$Poker.Hand, sub$Rank.of.Card.1, main="First card", ylab="")
+plot(sub$Poker.Hand, sub$Rank.of.Card.2, main="Second card", ylab="")
+plot(sub$Poker.Hand, sub$Rank.of.Card.3, main="Third card", ylab="")
+plot(sub$Poker.Hand, sub$Rank.of.Card.4, main="Fourth card", ylab="")
+plot(sub$Poker.Hand, sub$Rank.of.Card.5, main="Fifth card", ylab="")
+par(opar)
+```
+
+Visual demonstration of the order of the suits not affecting the outcome.
+
+```{r}
+opar <- par(no.readonly = TRUE)
+par(mfrow=c(1,1))
+plot(df$Poker.Hand, df$Suit.of.Card.1, main="First card", ylab="")
+plot(df$Poker.Hand, df$Suit.of.Card.2, main="Second card", ylab="")
+plot(df$Poker.Hand, df$Suit.of.Card.3, main="Third card", ylab="")
+plot(df$Poker.Hand, df$Suit.of.Card.4, main="Fourth card", ylab="")
+plot(df$Poker.Hand, df$Suit.of.Card.5, main="Fifth card", ylab="")
+par(opar)
+
+```
+
+Not the best visual due to the overlapping nature of the data. Only showing 10k observations since 1m would take significantly longer to load, but give no additional information.
+
+```{r}
+set.seed(1234)
+sub <- df[sample(1:nrow(df), 10000, replace=FALSE),]
+pairs(sub[c(2,4,6,8,10)], pch=21, bg=c("red","orange","yellow","chartreuse","green","cyan","blue","purple","magenta","violet")[unclass(sub$Poker.Hand)])
+```
+
+
+Split training and test data.
+
+```{r}
+set.seed(1234)
+i <- sample(1:nrow(df),0.8*nrow(df),replace=FALSE)
+train <- df[i,]
+test <- df[-i,]
+rm(i)
+```
+
+# Classification Algorithms
+
+Multi-class logistic regression function. Takes test and train data frames and target value. Remaps to single class and runs logistic regression.
+
+```{r}
+mclog <- function(train, test, val) {
+  train$Poker.Hand <- as.factor(ifelse (train$Poker.Hand==val, 1, 0))
+  test$Poker.Hand <- as.factor(ifelse (test$Poker.Hand==val, 1, 0))
+  glm1 <- glm(Poker.Hand~., data=train, family="binomial")
+  probs <- predict(glm1, newdata=test)
+  pred <- ifelse(probs>0.5, 1, 0)
+  acc <- mean(pred==test$Poker.Hand)
+  print(paste("Accuracy = ", acc))
+  print(table(pred,test$Poker.Hand))
+}
+```
+
+Run regression for each poker hand.
+
+```{r}
+for (x in 0) {
+  print(paste("Poker.Hand = ", x))
+  mclog(train, test, x)
+}
+```
+
+Results show the algorithm learned to just assume no for everything. This issue is exaggerated when using many classes, especially when they have largely differing sizes like this data does.
+
+Subset data for kNN due to long run time.
+
+```{r}
+set.seed(1234)
+i <- sample(1:nrow(train), 80000, replace=FALSE)
+sub.train <- train[i,]
+i <- sample(1:nrow(test), 20000, replace=FALSE)
+sub.test <- test[i,]
+```
+
+
+Reformat data for kNN.
+
+```{r}
+data.train <- sub.train[,1:10]
+data.test <- sub.test[,1:10]
+data.trainLabels <- sub.train[,11]
+data.testLabels <- sub.test[,11]
+```
+
+Run kNN.
+
+```{r}
+library(class)
+data.pred <- knn(train=data.train, test=data.test, cl=data.trainLabels, k=3)
+```
+
+Results of kNN.
+
+```{r}
+results <- data.pred == data.testLabels
+acc <- length(which(results==TRUE))/length(results)
+
+table(results,data.pred)
+```
+
+After running a few times with different subset sizes, accuracy seems to be around 55%-60%. Though this likely doesn't extrapolate well to higher poker hands since they are rarely seen.
+
+```{r}
+library(tree)
+set.seed(1234)
+res <- tree(Poker.Hand~., data=train)
+res
+```
+
+Tree only has 1 layer, so can't plot it.
+
+```{r}
+summary(res)
+```
+
+
+Run again with rpart.
+
+```{r}
+library(rpart)
+set.seed(1234)
+res <- rpart(Poker.Hand~., data=train)
+res
+```
+
+View summary.
+
+```{r}
+summary(res)
+```
+
+The different algorithms gave different results, but neither are very good. Both give single layer trees so it's just guessing the largest class which is high card.
+
+I tried using random forest, but RStudio kept crashing. I believe it's because of the size of the data set.
+
+# Conclusion and Analysis
+
+Overall, these algorithms did not work very well. Of these, kNN worked the best, though it was by far the slowest. It likely worked the best because changing the suit of the card doesn't change the result and changing the cards not used for the rank doesn't change the result. For example, if your hand is a pair of aces, changing a two to a three won't change anything unless you already have a three. On the other side, you can have cases where changing a single card can give a variety of different hands. A three of a kind can be turned into a four of a kind, full house, or a pair just by changing one card. While these models didn't work, there are probably models that would. When I downloaded the data set, I saw someone mention they had some success with using a neural network.
+
+
+
+
+
