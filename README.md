@@ -40,4 +40,9 @@ Instead of just messing around with logistic regression and naive bayes, we buil
 
 
 ### Similarities!
-Group projects are hard! but we got it [here](https://github.com/zaiquiriw/ml-portfolio/blob/main/similarities/ML Similarities Narrative.pdf)
+Group projects are hard! but we got it [here]("https://github.com/zaiquiriw/ml-portfolio/blob/main/similarities/ML Similarities Narrative.pdf")
+Code
+- https://github.com/zaiquiriw/ml-portfolio/blob/main/similarties/Clustering.pdf
+- https://github.com/zaiquiriw/ml-portfolio/blob/main/similarties/Dimensionality.pdf
+- https://github.com/zaiquiriw/ml-portfolio/blob/main/similarties/Regression.pdf
+- https://github.com/zaiquiriw/ml-portfolio/blob/main/similarties/Classification.pdf
