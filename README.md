@@ -37,3 +37,7 @@ Well this was hard! Work on linear regression can be found [here](https://github
 
 ### 3. Building Algorithms from Scratch
 Instead of just messing around with logistic regression and naive bayes, we build it from scratch. A blurb about the work can be found [here](https://github.com/zaiquiriw/ml-portfolio/blob/main/algo-from-scratch/documentation.pdf)
+
+
+### Similarities!
+Group projects are hard! but we got it [here](https://github.com/zaiquiriw/ml-portfolio/blob/main/similarities/ML Similarities Narrative.pdf)
