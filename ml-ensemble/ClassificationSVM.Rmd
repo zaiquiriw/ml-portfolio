@@ -1,0 +1,245 @@
+---
+title: "Classification with SVM"
+author: Zachary Canoot ^[[Zaiquiri's Portfolio](https://zaiquiriw.github.io/ml-portfolio/)]
+        Gray Simpson ^[[Gray's Porfolio](https://ecclysium.github.io/MachineLearning_Portfolio/)]
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  pdf_document: default
+  html_document:
+    toc: yes
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+editor_options: 
+  markdown: 
+    wrap: 80
+---
+
+# SVM Classification
+
+Support Vector Machines can divide data into classes by a hyperplane in
+multidimensional space. This line separates classes by finding minimum distance
+of margins between support vectors. Once we calculate support vectors for our
+model (given an input of slack in the margins optimized with validation data),
+we can then classify the data in relation to the margins on the hyperplane.
+
+We are going to apply this classification model to data we have used in the
+past, [census
+data](https://www.kaggle.com/datasets/rdcmdev/adult-income-dataset) from 1994,
+and hope to improve previous results at predicting income class.
+
+## Exploring Our Data
+
+As before, the data is stored as two files, with rows just delimited by commas,
+so we read them in to one whole data frame, and label the headers manual using
+our source as a reference. It's worth noting that this data was extracted with
+the intention of creating a classification model, so the two files are meant to
+be training and test data, but we are going to re-distribute the data sets to
+train and test later.
+
+Factoring and splitting our data, we can explore the data with a bit more ease.
+We are going to sample down the data size to 10,000 for shorter compilation
+times as well.
+
+```{r}
+
+income_train <- read.table("adult.data", sep=",", header=FALSE)
+income_test <- read.table("adult.test", sep=",", header=FALSE)
+income <- rbind(income_test, income_train)
+colnames(income) <- c("Age", "WorkClass", "Weight", "Education", "YearsEdu", "Marital-Status", "Job", "Relationship", "Race", "Sex", "CapitalGain", "CapitalLoss", "HoursWorked", "NativeCountry", "IncomeClass")
+# Note here that while sapply returns a vector, lapply returns a list
+income[, sapply(income, is.character)] <- lapply(income[, sapply(income, is.character)], as.factor)
+levels(income$IncomeClass) <- c("<=50k", "<=50k", ">50k", ">50k")
+# Then remove the attribute weight using it's index
+set.seed(8)
+income <- income[sample(1:nrow(income),10000,replace=FALSE),]
+spec <- c(train=.6, test=.2, validate=.2)
+i <- sample(cut(1:nrow(income), nrow(income)*cumsum(c(0,spec)), labels=names(spec)))
+train <- income[i=="train",]
+test <- income[i=="test",]
+vald <- income[i=="validate",]
+# Cleaning up earlier data
+rm("income", "income_test", "income_train")
+```
+
+```{r}
+summary(train)
+```
+
+While the data is complex, we can see in the summary that there are of course
+averages we can determine the average person who recorded census data. He is a
+man with some high school experience about to enter his 40's, married, and born
+and raised in the USA. There is some skew in the data, but in the interest of
+time we'll not dig into stratifying the data right now.
+
+```{r}
+cdplot(train$Age, train$IncomeClass)
+breaks <- (0:10)*10
+plot(train$IncomeClass ~ findInterval(train$HoursWorked, breaks))
+plot(train$Sex, train$IncomeClass)
+```
+
+Just as a reminder as well, while ever predictor helps improve the model, some
+relationships are more clear/obvious:
+
+-   Men make more then women!
+
+-   The longer you work, the more money you make
+
+-   People make the most of their money in their 40's and 50's (if they are
+    making money)
+
+Truly because the data has so many factors, exploring the data doesn't help too
+well getting the whole picture that our eventual model will produce. At least in
+our opinion.
+
+### Baseline Naive Bayes
+
+We are going to compare our results to Naive Bayes this time for analysis, as we
+are most interested in the comparison to the performance to the radial kernel
+(for their ability to handle overlapping data).
+
+```{r}
+library(e1071)
+nb1 <- naiveBayes(train$IncomeClass~., data=train)
+pred1 <- predict(nb1, newdata=test, type="class")
+cm <- caret::confusionMatrix(as.factor(pred1), test$IncomeClass)
+cm
+```
+
+We are trying to beat a baseline accuracy of \~81 percent, and considering the
+skew in our data, a kappa of \~.44. Reducing our data set to reduce compilation
+times for SVM did lower our original accuracy from a previous notebook (82
+percent), but it will hopefully have returns in our final predictions.
+
+## Performing SVM Classification
+
+### Linear Kernel
+
+```{r}
+svmlin <- svm(IncomeClass~., data=train, kernel="linear", cost=10, scale=TRUE)
+summary(svmlin)
+```
+
+```{r}
+pred1 <- predict(svmlin, newdata=test)
+cmlin <- caret::confusionMatrix(as.factor(pred1), test$IncomeClass)
+cmlin
+```
+
+We see an increase in accuracy, but lets tune anyway.
+
+```{r}
+tune_svmlin <- tune(svm, IncomeClass~., data = vald, kernel="linear", ranges=list(cost=c(0.001, 0.01, 0.1, 1, 5, 10, 100)))
+tune_svmlin$best.model
+```
+
+It estimates quite a low cost function, which bodes well for an increase in our
+accuracy
+
+```{r}
+svmlin <- svm(IncomeClass~., data=train, kernel="linear", cost=.1, scale=TRUE)
+pred2 <- predict(svmlin, newdata=test)
+tuned_cmlin <- caret::confusionMatrix(as.factor(pred2), test$IncomeClass)
+tuned_cmlin
+```
+
+There was an increase with a bit of tuning. Still hopeful for better results.
+
+### Polynomial Kernel
+
+```{r}
+svmpoly <- svm(IncomeClass~., data=train, kernel="polynomial", cost=.1, scale=TRUE)
+summary(svmpoly)
+```
+
+```{r}
+pred3 <- predict(svmpoly, newdata=test)
+cmpoly <- caret::confusionMatrix(as.factor(pred3), test$IncomeClass)
+cmpoly
+```
+
+Well... we didn't expect a radically low kappa but that was because the default
+degree value is quite extreme, lets tune
+
+```{r}
+tune_svmpoly <- tune(svm, IncomeClass~., data = vald, kernel="polynomial", ranges=list(cost=c(0.001, 0.01, 0.1, 1, 5, 10, 100), degree=c(1,2,3)))
+tune_svmpoly$best.model
+```
+
+It found a linear result, but it did raise the cost from our previous linear
+test which is quite interesting
+
+```{r}
+svmpoly <- svm(IncomeClass~., data=train, kernel="polynomial", cost=10, degree=1, scale=TRUE)
+pred4 <- predict(svmpoly, newdata=test)
+tuned_cmpoly <- caret::confusionMatrix(as.factor(pred4), test$IncomeClass)
+tuned_cmpoly
+```
+
+This is a solid result, with really a statistically insignificant result
+compared to our other models. Lets test a Radial Kernel!
+
+### Radial Kernel
+
+```{r}
+svmrad <- svm(IncomeClass~., data=train, kernel="radial", cost=.1, gamma=1, scale=TRUE)
+summary(svmrad)
+```
+
+```{r}
+pred5 <- predict(svmrad, newdata=test)
+cmrad <- caret::confusionMatrix(as.factor(pred5), test$IncomeClass)
+cmrad
+```
+
+Well... we didn't expect a radically low kappa but that was because the default
+degree value is quite extreme, lets tune
+
+```{r}
+tune_svmrad <- tune(svm, IncomeClass~., data = vald, kernel="radial", ranges=list(cost=c(0.001, 0.01, 0.1, 1), gamma=c(.1, .5, 1)))
+tune_svmrad$best.model
+```
+
+Inputting the tuned parameters into the radial model one final time:
+
+```{r}
+svmrad <- svm(IncomeClass~., data=train, kernel="radial", cost=1, gamma=.1, scale=TRUE)
+pred6 <- predict(svmrad, newdata=test)
+tuned_cmrad <- caret::confusionMatrix(as.factor(pred6), test$IncomeClass)
+tuned_cmrad
+```
+
+That is only marginally better then our Naive Bayes base line result
+
+## Analysis
+
+Briefly describing the kernels:
+
+-   The linear kernel is simple, it fits a hyperplane to the data
+
+-   The polynomial kernel transforms the data in such a way to mimic adding more
+    features to the data set, really just by mapping the input data to a
+    polynomial of a higher degree. By mapping values in a higher degree space,
+    say, to the second degree, what really is a circular data set classification
+    can now have a straight line drawn through it.
+
+-   The radial kernel compares the distance between every 2 values in the input
+    data, and scales the data by the value of it's distance. This mimics nearest
+    neighbor, where the model predicts every value with increasing weight
+    supplied to its neighbors. The kernel can then map the input to a higher
+    (infinite) dimensional space where it is easiest to fit a hyperplane that
+    best maximizes the margins of the model... it's not exactly easy to wrap a
+    brain around
+
+For all three of these kernels we got increasingly better results, slowly
+growing more accurate then our last attempts to fit the data to a model. This
+could be a result of really the complexity of the data, and how hard it is to
+truly predict something like someone's income bracket based on a snapshot of
+their socioeconomic status. While it is almost always the case that SVM is
+better than Naive Bayes, perhaps we were hitting the upper bound of what we
+could predict, meaning only a 3% increase in accuracy
+
+By any case, 3% more accuracy could be a meaningful increase based on what the
+model is used for. We really should be aiming for 99% accuracy though. This
+would perhaps require trimming the data, or running some ensemble methods!

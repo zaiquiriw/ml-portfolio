@@ -1,0 +1,251 @@
+---
+title: "Ensemble"
+author: "Zachary Canoot & Gray Simpson"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+# Ensemble Learning
+
+## Introduction
+
+This is a notebook discussing ensemble machine learning with the dataset [US Census Income](https://www.kaggle.com/datasets/rdcmdev/adult-income-dataset) in 1994 from Kaggle.com.
+
+We will be doing classification to see how accurately we can predict IncomeClass, a class that states whether a person with the given socio-economic attributes makes over 50k or not.
+
+When we've worked with this data in the past, we were able to get \~76% accuracy with Naive Bayes, and \~84% accuracy with Logistic Regression. With Ensemble styles of learning, we should be able to get into the 90%+ category, since there was decent success in other ways. In this assignment, we will be doing Random Forest, XGBoost, and caretEnsemble ensemble learning types.
+
+## Reading In Data
+
+We read in the data. Since it doesn't have headers, we have to add them manually based on another file that explains them. Then we'll take a quick peek to make sure it's all looking okay.
+
+```{r}
+library(RWeka)
+df <- read.csv("data/adultdata.csv", header = FALSE)
+colnames(df) <- c("Age", "WorkClass", "Weight", "Education", "YearsEdu", "MaritalStatus", "Job", "Relationship", "Race", "Sex", "CapitalGain", "CapitalLoss", "HoursWorked", "NativeCountry", "IncomeClass")
+head(df)
+```
+
+Looking into the data, this seems to fit. All is well here.
+
+## Data Cleaning
+
+Next, most obviously, we'll want to convert all those different columns to factors so we can look into them deeper.
+
+```{r}
+df$WorkClass <- as.factor(df$WorkClass)
+df$Education <- as.factor(df$Education)
+df$MaritalStatus <- as.factor(df$MaritalStatus)
+df$Job <- as.factor(df$Job)
+df$Relationship <- as.factor(df$Relationship)
+df$Race <- as.factor(df$Race)
+df$Sex <- as.factor(df$Sex)
+df$NativeCountry <- as.factor(df$NativeCountry)
+df$IncomeClass <- as.factor(df$IncomeClass)
+summary(df)
+```
+
+We will not be cleaning out NAs, or the ambiguous "?" factors here. We will consider what was not reported or could not be described as useful data as well in determining results. We can see that the data is skewed towards men, people from the US, and people working with a private group.
+
+Let's clean up the periods on the IncomeClass, and rename the values. For a learning model we will use later, we can't use certain symbols in factor names, so we will go ahead and change those now.
+
+```{r}
+levels(df$IncomeClass) <- c("LE50k", "LE50k", "G50k", "G50k")
+levels(df$IncomeClass)
+```
+
+## Data Investigation
+
+### Preparation
+
+Let's see how many levels some of these have overall.
+
+```{r}
+str(df)
+```
+
+Looking good. Since we have so many factors overall, chances are low that the numerical values alone will be helping us much, but instead, it's probably in combinations that they will work effectively.
+
+Let's divvy up the data.
+
+```{r}
+set.seed(8)
+i <- sample(1:nrow(df), nrow(df)*.8, replace = FALSE)
+train <- df[i,]
+test <- df[-i,]
+```
+
+### Visual Analysis
+
+Let's look into how income scales with various traits.
+
+```{r}
+cdplot(df$Age,df$IncomeClass)
+cdplot(df$YearsEdu,df$IncomeClass)
+cdplot(df$Weight,df$IncomeClass)
+
+```
+
+Weight is a bit uncertain in what its telling us, and there are many reasons this could be. If possible, we'll keep it in mind to try and remove it if it proves that it isnt' sufficiently useful.
+
+```{r}
+pairs(df[c(1,3,13,15)])
+```
+
+The numerical values do not seem to have much relationship to each other, or too many obvious details towards the income class, but we'll see as we go along.
+
+```{r}
+plot(df$Sex,df$IncomeClass)
+plot(df$MaritalStatus,df$IncomeClass)
+plot(df$WorkClass,df$IncomeClass)
+plot(df$Relationship,df$IncomeClass)
+```
+
+From other times working with this data, we have already seen a lot about how it relates to various attributes. Now that we've looked a bit more at what we've done in the past with a few new plots, we'll move on.
+
+We see a lot of most likely related data, with a few skews in amount towards certain traits-- men, people in the US, and people working for private groups. We can see how the lack of data and the reasons why certain people reported census data and others didn't could cause inaccuracies down the line. While it may look women make larger amounts much less than men, this could be due to a number of factors that aren't specifically indicative of true income of the wider population. This data set does not seem to be perfect. All the same, we can do our best, and it seems that there are still correlations between income and socioeconomic factors to be investigated and predicted.
+
+Let's look into these ensemble learning methods and see what it can do.
+
+## Random Forest
+
+Let's start with Random Forest Learning.It is a supervised algorithm that puts together decision trees on differing samples of data and uses that to influence a larger scale vote for what an observation is. It's better with classification than regression, which makes it great for what we're doing.
+
+```{r}
+library(randomForest)
+rf <- randomForest(data=train, IncomeClass ~ . ,  importance=TRUE, ntree = 500)
+rf
+```
+
+Okay, so it is looking alright, but still leaves much to be desired. Let's look at the specific statistics of it working on our test data.
+
+```{r}
+library(mltools)
+predrf <- predict(rf, newdata=test, type="response")
+accrf <- mean(predrf==test$IncomeClass)
+mccrf <- mcc(factor(predrf), test$IncomeClass)
+print(paste("The accuracy is ",accrf))
+print(paste("The MCC is ",mccrf))
+```
+
+86% is pretty good! It managed to get very specific with all the different values and be surprisingly strong. Let's move on and see what else we can do.
+
+## caretEnsemble
+
+Let's try something entirely new: caretEnsemble.
+
+```{r}
+library(caret)
+library(mlbench)
+library(rpart)
+library(caretEnsemble)
+controlCE <- trainControl(method = "boot",number=25, savePredictions = "final", classProbs = TRUE, index=createResample(train$IncomeClass, 25))
+summary(controlCE)
+```
+
+Let's start working on the model itself now.
+
+```{r}
+library(e1071)
+methods <- c("rpart","glm") #Other models were tried, but even after a while would not produce results
+models <- caretList(IncomeClass~., data=train, trControl=controlCE, methodList=methods)
+```
+
+We get a lot of warnings, but there are many reasons that they could occur, and there's nothing to be worried about yet.
+
+Now let's really put this to work.
+
+```{r}
+predCE <- as.data.frame(predict(models, newdata=test))
+```
+
+Nothing stands out yet, so let's see it in a bit more understandable form: statistics.
+
+```{r}
+CE <- caretEnsemble(models, metric = "Accuracy", trControl=controlCE)
+summary(CE)
+```
+
+It was able to combine rpart and glm to get 85% accuracy! It isn't anything outstanding, and looks like it may be nearly the same as a general linear model on its own, but it is good.
+
+## XGBoost
+
+Now we'll try XGBoost, or Extreme Gradient Boosting. Made by Tianqi Chen, it combines a number of weak models to create something stronger, and has been considered one of the most powerful machine learning algorithms. It does this additively, which is why it's considered "gradient." It uses highly specialized decision trees so specific that they would not be readable or interpretable anymore, where new models "boost" the data, focusing on the errors made in the previous model.
+
+We have to convert factors to integers to work here. So, this is why XGBoost is listed last: we're going to change them as a whole and redistribute.
+
+```{r}
+df$WorkClass <- as.numeric(df$WorkClass)
+df$Education <- as.numeric(df$Education)
+df$MaritalStatus <- as.numeric(df$MaritalStatus)
+df$Job <- as.numeric(df$Job)
+df$Relationship <- as.numeric(df$Relationship)
+df$Race <- as.numeric(df$Race)
+df$Sex <- as.numeric(df$Sex)
+df$NativeCountry <- as.numeric(df$NativeCountry)
+df$IncomeClass <- as.numeric(df$IncomeClass)
+summary(df)
+```
+
+Now let's redistribute it.
+
+```{r}
+set.seed(8)
+i <- sample(1:nrow(df), nrow(df)*.8, replace = FALSE)
+train <- df[i,]
+test <- df[-i,]
+```
+
+After running the model initially, the loss flattened out at about round 36, so we only do 40 rounds in the code block below.
+
+```{r}
+library(xgboost)
+trainlabelXG <- ifelse(as.numeric(train[,15])==1,1,0) #we have to fit it to integers for XGBoost to run
+trainmatrixXG <- data.matrix(train[,-15])
+XGtrain <- xgb.DMatrix(data = trainmatrixXG, label = trainlabelXG)
+xg <- xgboost(data = trainmatrixXG, label = trainlabelXG, nrounds = 100, max.depth = 6, objective="binary:logistic")
+summary(xg)
+```
+
+Now, let's move on to predicting with it.
+
+```{r}
+testlabelXG <- ifelse(as.numeric(test[,15])==1,1,0) #to match with earlier data
+testmatrixXG <- data.matrix(test[,-15])
+XGtest <- xgb.DMatrix(data = testmatrixXG, label = testlabelXG)
+probXG <- predict(xg, testmatrixXG, type="prob")
+predXG <- ifelse(probXG>0.5, 1, 0)
+summary(probXG)
+```
+
+Now that we've done the prediction, lets look at the statistics on it.
+
+```{r}
+accXG <- mean(predXG==testlabelXG)
+mccXG <- mcc(predXG, testlabelXG)
+print(paste("Accuracy is ", accXG))
+print(paste("MCC is ", mccXG))
+```
+
+86.7% accuracy is not bad! Surprisingly close to Random Forest, and perhaps a bit lower accuracy than that.
+
+Let's look into how they tie into each other.
+
+## Conclusion
+
+    RANDOM FOREST:
+      ACC: 86.5%    MCC: .612
+    CARET ENSEMBLE:
+      ACC: 85.3%    MCC couldn't be gathered due to typing complications
+    XGBOOST:
+      ACC: 86.7%    MCC: .624
+
+It would seem that, for our data, XGBoost learning is the most successful, but just barely by the side of Random Forest. Perhaps this is due to the large number of factors that decision trees would excel with. They both have similar places where they succeed. XGBoost agrees more fully with the data as well, as we see by the MCC.
+
+CaretEnsemble does gloriously as well, able to pull together multiple different types to refine data in many different ways. Certainly, CaretEnsemble could be refined in the future, perhaps on a different computer that can run faster and use more variant learning methods.
+
+Even then, there are some aspects of someone's income that socioeconomic factors could never completely get-- logically, we know that some things in life are simply a matter of luck and elbow grease, no matter background or anything else. There well may be no way to get significantly more accurate with this data set.In the past, 85% accuracy was already achieved with logistic regression. This is in line with what we see here, and perhaps there is more of a hard line that no one could predict, no matter what, by this point.
+
+Overall, ensemble methods seem to be quite wonderful at predicting. It combines what is best from different methods and is able to treat its own weak spots to create a more accurate result. What we have learned here proves that, and we've learned about the data a lot as well in the meantime.
