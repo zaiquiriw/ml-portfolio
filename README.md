@@ -48,5 +48,5 @@ Code
 - https://github.com/zaiquiriw/ml-portfolio/blob/main/similarties/Classification.pdf
 
 ### SVM and Ensemble
-We iterate further down the ml rabbit whole with improved classification and regression methods, using some fun math and the art of doing things over and over. The algorithms used are noted [here](https://github.com/zaiquiriw/ml-portfolio/blob/main/ensemble/Documentation.pdf), and implemented in [regression](https://github.com/zaiquiriw/ml-portfolio/blob/main/ensemble/Regression.pdf), [classification](https://github.com/zaiquiriw/ml-portfolio/blob/main/ensemble/Classification.pdf), and 
-[various ensemble methods](https://github.com/zaiquiriw/ml-portfolio/blob/main/ensemble/Ensemble.pdf).
+We iterate further down the ml rabbit whole with improved classification and regression methods, using some fun math and the art of doing things over and over. The algorithms used are noted [here](https://raw.githubusercontent.com/zaiquiriw/ml-portfolio/main/ml-ensemble/Documentation.pdf), and implemented in [regression](https://raw.githubusercontent.com/zaiquiriw/ml-portfolio/main/ml-ensemble/RegressionSVM.pdf), [classification](https://raw.githubusercontent.com/zaiquiriw/ml-portfolio/main/ml-ensemble/ClassificationSVM.pdf), and 
+[various ensemble methods](https://raw.githubusercontent.com/zaiquiriw/ml-portfolio/main/ml-ensemble/EnsembleLearning.pdf).
