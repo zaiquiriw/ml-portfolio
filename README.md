@@ -50,3 +50,6 @@ Code
 ### SVM and Ensemble
 We iterate further down the ml rabbit whole with improved classification and regression methods, using some fun math and the art of doing things over and over. The algorithms used are noted [here](https://raw.githubusercontent.com/zaiquiriw/ml-portfolio/main/ml-ensemble/Documentation.pdf), and implemented in [regression](https://raw.githubusercontent.com/zaiquiriw/ml-portfolio/main/ml-ensemble/RegressionSVM.pdf), [classification](https://raw.githubusercontent.com/zaiquiriw/ml-portfolio/main/ml-ensemble/ClassificationSVM.pdf), and 
 [various ensemble methods](https://raw.githubusercontent.com/zaiquiriw/ml-portfolio/main/ml-ensemble/EnsembleLearning.pdf).
+
+### Sklearn
+Just ran through a couple use cases of python for ml, read [here](https://raw.githubusercontent.com/zaiquiriw/ml-portfolio/main/sklearn_example.pdf)
