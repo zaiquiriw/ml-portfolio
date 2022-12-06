@@ -53,3 +53,6 @@ We iterate further down the ml rabbit whole with improved classification and reg
 
 ### Sklearn
 Just ran through a couple use cases of python for ml, read [here](https://raw.githubusercontent.com/zaiquiriw/ml-portfolio/main/sklearn_example.pdf)
+
+### Image Classification in Keras
+This has been a fun semester of ML! With my resulting understanding of previous ML concepts, its nice to know I understand what improvements my neural networks shown [here](https://raw.githubusercontent.com/zaiquiriw/ml-portfolio/main/keras_image_recognition.pdf) have over earlier and simpler classification models.
